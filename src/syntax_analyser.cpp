@@ -622,7 +622,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     func_type.start = start;
                     func_type.end = code_block->end;
 
-                    Node *node = new AssignVariable(qualifier, func_type, name, code_block);
+                    Node *node = new DeclareVariable(qualifier, func_type, name, code_block);
 
                     node->start = start;
                     node->end = code_block->end;
@@ -659,7 +659,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 if (EraseFront(&tokens, 2))
                 {
-                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of assignment"});
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of declaration"});
                 }
 
                 vector<Node*> data;
@@ -673,12 +673,12 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 if (data.size() == 0)
                 {
-                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing assignment value"});
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing declaration value"});
                 }
 
                 Node *content = data[0];
 
-                Node *node = new AssignVariable(qualifier, variable_type, name, content);
+                Node *node = new DeclareVariable(qualifier, variable_type, name, content);
 
                 node->start = start;
                 node->end = tokens[0]->end;
@@ -819,7 +819,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                         AST.pop_back();
                     }
 
-                    node = new AssignVariable(qualifier, variable_type, ((Identifier*)tokens[0])->name, NULL);
+                    node = new DeclareVariable(qualifier, variable_type, ((Identifier*)tokens[0])->name, NULL);
                 }
 
                 node->start = start;
@@ -947,7 +947,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 for (Node *node : data)
                 {
-                    if (node->type != "AssignVariable" && node->type != "StatementEnd")
+                    if (node->type != "DeclareVariable" && node->type != "StatementEnd")
                     {
                         ThrowError(node->start, node->end, Error {SyntaxError, "Expected declaration"});
                     }
@@ -1308,12 +1308,12 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 if (tokens[0]->type == "Control" && ((Control*)tokens[0])->value == ":")
                 {
-                    if (data.size() != 1 || data[0]->type != "AssignVariable" || ((AssignVariable*)data[0])->value != NULL)
+                    if (data.size() != 1 || data[0]->type != "DeclareVariable" || ((DeclareVariable*)data[0])->value != NULL)
                     {
                         ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid expression in for loop"});
                     }
 
-                    AssignVariable *assignment = (AssignVariable*)data[0];
+                    DeclareVariable *declaration = (DeclareVariable*)data[0];
 
                     if (EraseFront(&tokens, 1))
                     {
@@ -1331,7 +1331,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                     if (data.size() == 0)
                     {
-                        ThrowError(assignment->end, tokens[0]->end, Error {SyntaxError, "Missing iteration expression"});
+                        ThrowError(declaration->end, tokens[0]->end, Error {SyntaxError, "Missing iteration expression"});
                     }
 
                     Node *iteration_expression = data[0];
@@ -1355,7 +1355,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                     CodeBlock *for_code_block = (CodeBlock*)data[0];
 
-                    ForEachLoop *for_each_loop = new ForEachLoop(assignment, iteration_expression, for_code_block);
+                    ForEachLoop *for_each_loop = new ForEachLoop(declaration, iteration_expression, for_code_block);
 
                     for_each_loop->start = start;
                     for_each_loop->end = for_code_block->end;

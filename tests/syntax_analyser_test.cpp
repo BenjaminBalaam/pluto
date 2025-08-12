@@ -629,38 +629,38 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     string text = "int foo = 0;";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "Literal" );
-    REQUIRE( ((Literal*)((AssignVariable*)AST[0])->value)->l_integer == 0 );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "Literal" );
+    REQUIRE( ((Literal*)((DeclareVariable*)AST[0])->value)->l_integer == 0 );
 
     text = "static const int foo = 0;";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "static", "const" } );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "Literal" );
-    REQUIRE( ((Literal*)((AssignVariable*)AST[0])->value)->l_integer == 0 );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->qualifier->qualifiers == vector<string> { "static", "const" } );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "Literal" );
+    REQUIRE( ((Literal*)((DeclareVariable*)AST[0])->value)->l_integer == 0 );
 
     text = "int foo;";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value == NULL );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value == NULL );
 
     text = "static const int foo;";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "static", "const" } );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value == NULL );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->qualifier->qualifiers == vector<string> { "static", "const" } );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value == NULL );
 
     text = "int foo = 0"; // No ending semi-colon
 
@@ -683,7 +683,7 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing assignment value" );
+        REQUIRE( node->error->text == "Missing declaration value" );
     }
 
     text = "int foo =";
@@ -695,7 +695,7 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing end of assignment" );
+        REQUIRE( node->error->text == "Missing end of declaration" );
     }
 }
 
@@ -774,96 +774,96 @@ TEST_CASE("Test Syntax Analyser Define Function")
     string text = "int foo() {}";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
 
     text = "void foo() {}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "VoidFunction" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "VoidFunction" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
 
     text = "public static int foo() {}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    AssignVariable a = *((AssignVariable*)AST[0]);
+    DeclareVariable a = *((DeclareVariable*)AST[0]);
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "public", "static" } );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->qualifier->qualifiers == vector<string> { "public", "static" } );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
 
     text = "int foo() {bar}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content[0]->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((CodeBlock*)((AssignVariable*)AST[0])->value)->content[0])->name == "bar" );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content[0]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((CodeBlock*)((DeclareVariable*)AST[0])->value)->content[0])->name == "bar" );
 
     text = "int foo(string bar) {}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].name == "bar" );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].name == "bar" );
 
     text = "int foo(string bar = 'abc') {}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].name == "bar" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value()->type == "Literal" );
-    REQUIRE( ((Literal*)((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value())->l_string == "abc" );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].name == "bar" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].default_argument.value()->type == "Literal" );
+    REQUIRE( ((Literal*)((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].default_argument.value())->l_string == "abc" );
 
     text = "int foo(string **bar) {}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].name == "bar" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].argument_expansion == Dictionary );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].name == "bar" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].argument_expansion == Dictionary );
 
     text = "int foo(string *bar = 'abc') {}";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
-    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
-    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].name == "bar" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value()->type == "Literal" );
-    REQUIRE( ((Literal*)((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value())->l_string == "abc" );
-    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].argument_expansion == Array );
+    REQUIRE( AST[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((DeclareVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((DeclareVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->content.size() == 0 );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].type_data.name == "string" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].name == "bar" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].default_argument.value()->type == "Literal" );
+    REQUIRE( ((Literal*)((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].default_argument.value())->l_string == "abc" );
+    REQUIRE( ((CodeBlock*)((DeclareVariable*)AST[0])->value)->parameters[0].argument_expansion == Array );
 }
 
 TEST_CASE("Test Syntax Analyser Class Definition")
@@ -875,17 +875,17 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     REQUIRE( ((ClassDefinition*)AST[0])->name == "foo" );
     REQUIRE( ((ClassDefinition*)AST[0])->interface == "" );
     REQUIRE( ((ClassDefinition*)AST[0])->body.size() == 2 );
-    REQUIRE( ((ClassDefinition*)AST[0])->body[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[0])->body[0])->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[0])->body[0])->name == "test" );
+    REQUIRE( ((ClassDefinition*)AST[0])->body[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)((ClassDefinition*)AST[0])->body[0])->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)((ClassDefinition*)AST[0])->body[0])->name == "test" );
 
     REQUIRE( AST[1]->type == "ClassDefinition" );
     REQUIRE( ((ClassDefinition*)AST[1])->name == "foo" );
     REQUIRE( ((ClassDefinition*)AST[1])->interface == "bar" );
     REQUIRE( ((ClassDefinition*)AST[1])->body.size() == 2 );
-    REQUIRE( ((ClassDefinition*)AST[1])->body[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[1])->body[0])->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[1])->body[0])->name == "test" );
+    REQUIRE( ((ClassDefinition*)AST[1])->body[0]->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)((ClassDefinition*)AST[1])->body[0])->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)((ClassDefinition*)AST[1])->body[0])->name == "test" );
 
     text = "class";
 
@@ -1643,21 +1643,21 @@ TEST_CASE("Test Syntax Analyser For Loop")
     REQUIRE( ((ForLoop*)AST[0])->for_code_block->content.size() == 0 );
 
     REQUIRE( AST[1]->type == "ForLoop" );
-    REQUIRE( ((ForLoop*)AST[1])->declaration_expression->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->name == "i" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->value->type == "Literal" );
-    REQUIRE( ((Literal*)((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->value)->l_integer == 0 );
+    REQUIRE( ((ForLoop*)AST[1])->declaration_expression->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[1])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[1])->declaration_expression)->name == "i" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[1])->declaration_expression)->value->type == "Literal" );
+    REQUIRE( ((Literal*)((DeclareVariable*)((ForLoop*)AST[1])->declaration_expression)->value)->l_integer == 0 );
     REQUIRE( ((ForLoop*)AST[1])->condition_expression == NULL );
     REQUIRE( ((ForLoop*)AST[1])->iteration_expression == NULL );
     REQUIRE( ((ForLoop*)AST[1])->for_code_block->content.size() == 0 );
 
     REQUIRE( AST[2]->type == "ForLoop" );
-    REQUIRE( ((ForLoop*)AST[2])->declaration_expression->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->name == "i" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->value->type == "Literal" );
-    REQUIRE( ((Literal*)((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->value)->l_integer == 0 );
+    REQUIRE( ((ForLoop*)AST[2])->declaration_expression->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[2])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[2])->declaration_expression)->name == "i" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[2])->declaration_expression)->value->type == "Literal" );
+    REQUIRE( ((Literal*)((DeclareVariable*)((ForLoop*)AST[2])->declaration_expression)->value)->l_integer == 0 );
     REQUIRE( ((ForLoop*)AST[2])->condition_expression->type == "Operation" );
     REQUIRE( ((Operation*)((ForLoop*)AST[2])->condition_expression)->operator_string == "<" );
     REQUIRE( ((Operation*)((ForLoop*)AST[2])->condition_expression)->left->type == "GetVariable" );
@@ -1668,11 +1668,11 @@ TEST_CASE("Test Syntax Analyser For Loop")
     REQUIRE( ((ForLoop*)AST[2])->for_code_block->content.size() == 0 );
 
     REQUIRE( AST[3]->type == "ForLoop" );
-    REQUIRE( ((ForLoop*)AST[3])->declaration_expression->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->name == "i" );
-    REQUIRE( ((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->value->type == "Literal" );
-    REQUIRE( ((Literal*)((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->value)->l_integer == 0 );
+    REQUIRE( ((ForLoop*)AST[3])->declaration_expression->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[3])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[3])->declaration_expression)->name == "i" );
+    REQUIRE( ((DeclareVariable*)((ForLoop*)AST[3])->declaration_expression)->value->type == "Literal" );
+    REQUIRE( ((Literal*)((DeclareVariable*)((ForLoop*)AST[3])->declaration_expression)->value)->l_integer == 0 );
     REQUIRE( ((ForLoop*)AST[3])->condition_expression->type == "Operation" );
     REQUIRE( ((Operation*)((ForLoop*)AST[3])->condition_expression)->operator_string == "<" );
     REQUIRE( ((Operation*)((ForLoop*)AST[3])->condition_expression)->left->type == "GetVariable" );
@@ -1782,9 +1782,9 @@ TEST_CASE("Test Syntax Analyser Foreach Loop")
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "ForEachLoop" );
-    REQUIRE( ((ForEachLoop*)AST[0])->declaration_expression->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)((ForEachLoop*)AST[0])->declaration_expression)->variable_type.name == "int" );
-    REQUIRE( ((AssignVariable*)((ForEachLoop*)AST[0])->declaration_expression)->name == "item" );
+    REQUIRE( ((ForEachLoop*)AST[0])->declaration_expression->type == "DeclareVariable" );
+    REQUIRE( ((DeclareVariable*)((ForEachLoop*)AST[0])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((DeclareVariable*)((ForEachLoop*)AST[0])->declaration_expression)->name == "item" );
     REQUIRE( ((ForEachLoop*)AST[0])->iteration_expression->type == "GetVariable" );
     REQUIRE( ((GetVariable*)((ForEachLoop*)AST[0])->iteration_expression)->name == "list" );
     REQUIRE( ((ForEachLoop*)AST[0])->for_code_block->content.size() == 0 );

@@ -116,7 +116,7 @@ class GetVariable : public Node
         friend std::ostream &operator<<(std::ostream &os, const GetVariable &data);
 };
 
-class AssignVariable : public Node
+class DeclareVariable : public Node
 {
     public:
         Qualifier *qualifier;
@@ -124,9 +124,9 @@ class AssignVariable : public Node
         std::string name;
         Node *value;
 
-        AssignVariable(Qualifier *qualifier, Type variable_type, std::string name, Node *value);
+        DeclareVariable(Qualifier *qualifier, Type variable_type, std::string name, Node *value);
 
-        friend std::ostream &operator<<(std::ostream &os, const AssignVariable &data);
+        friend std::ostream &operator<<(std::ostream &os, const DeclareVariable &data);
 };
 
 class FunctionCall : public Node

@@ -57,9 +57,9 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (GetVariable&)n;
     }
-    else if (n.type == "AssignVariable")
+    else if (n.type == "DeclareVariable")
     {
-        return os << (AssignVariable&)n;
+        return os << (DeclareVariable&)n;
     }
     else if (n.type == "FunctionCall")
     {
@@ -269,12 +269,12 @@ ostream &operator<<(ostream &os, const GetVariable &data)
     return os << data.name;
 }
 
-AssignVariable::AssignVariable(Qualifier *qualifier, Type variable_type, string name, Node *value) : qualifier(qualifier), variable_type(variable_type), name(name), value(value)
+DeclareVariable::DeclareVariable(Qualifier *qualifier, Type variable_type, string name, Node *value) : qualifier(qualifier), variable_type(variable_type), name(name), value(value)
 {
-    this->type = "AssignVariable";
+    this->type = "DeclareVariable";
 }
 
-ostream &operator<<(ostream &os, const AssignVariable &data)
+ostream &operator<<(ostream &os, const DeclareVariable &data)
 {
     if (data.value == NULL)
     {
