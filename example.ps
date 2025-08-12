@@ -1,9 +1,3 @@
-for (;;)
-{
-    print(i);
-}
-
-/*
 int my_function(list<string> input = 0, float **test)
 {
     function<float, string> test = (string name) -> float {
@@ -15,7 +9,11 @@ int my_function(list<string> input = 0, float **test)
         for (int i = 0; i < length; i += 1)
         {
             print(i);
+
+            if (isprime(i))
+            {
+                break;
+            }
         }
     };
 }
-*/

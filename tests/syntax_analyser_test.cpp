@@ -408,7 +408,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
 TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of operations -a ^ b * c + d == e & f | g = h;
 {
 
-    string text = "a ^ b; -a; a * b; a + b; a == b; a & b; a | b; a = b; a * b + c; a + b * c; a + b * c == d; a == b * c + d; func(a / b);";
+    string text = "a ^ b; -a; a * b; a + b; a == b; a & b; a | b; a = b; a * b + c; a + b * c; a + b * c == d; a == b * c + d; func(a < b);";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "Operation" );
@@ -520,7 +520,7 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
 
     REQUIRE( AST[24]->type == "FunctionCall" );
     REQUIRE( ((FunctionCall*)AST[24])->arguments[0]->type == "Operation" );
-    REQUIRE( ((Operation*)((FunctionCall*)AST[24])->arguments[0])->operator_string == "/" );
+    REQUIRE( ((Operation*)((FunctionCall*)AST[24])->arguments[0])->operator_string == "<" );
     REQUIRE( (((Operation*)((FunctionCall*)AST[24])->arguments[0])->left)->type == "GetVariable" );
     REQUIRE( ((GetVariable*)(((Operation*)((FunctionCall*)AST[24])->arguments[0])->left))->name == "a" );
     REQUIRE( (((Operation*)((FunctionCall*)AST[24])->arguments[0])->right)->type == "GetVariable" );
@@ -901,6 +901,198 @@ TEST_CASE("Test Syntax Analyser If Statements")
     REQUIRE( ((IfStatement*)AST[3])->else_if_code_blocks[0]->content.size() == 0 );
     REQUIRE( ((IfStatement*)AST[3])->else_if_code_blocks[1]->content.size() == 0 );
     REQUIRE( ((IfStatement*)AST[1])->else_code_block->content.size() == 0 );
+
+    text = "if";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "if (";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if (test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "if ()";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing expression" );
+    }
+
+    text = "if (true)";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if (true) test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in if statement" );
+    }
+
+    text = "if (true) {} else if";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if (true) {} else if test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "if (true) {} else if (";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if (true) {} else if (test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "if (true) {} else if ()";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing expression" );
+    }
+
+    text = "if (true) {} else if (true)";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if (true) {} else if (true) test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in if statement" );
+    }
+
+    text = "if (true) {} else if (true) {} else";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "if (true) {} else if (true) {} else test";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in if statement" );
+    }
 }
 
 TEST_CASE("Test Syntax Analyser Switch Statement")
@@ -937,6 +1129,258 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     REQUIRE( ((SwitchStatement*)AST[2])->case_code_blocks[0]->content.size() == 0 );
     REQUIRE( ((SwitchStatement*)AST[2])->case_code_blocks[1]->content.size() == 0 );
     REQUIRE( ((SwitchStatement*)AST[2])->default_code_block->content.size() == 0 );
+
+    text = "switch";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "switch (";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch (test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "switch ()";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing expression" );
+    }
+
+    text = "switch (foo)";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch (foo) test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting {" );
+    }
+
+    text = "switch (foo) { test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in switch statement" );
+    }
+
+    text = "switch (foo) { case";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch (foo) { case test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "switch (foo) { case (";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch (foo) { case (test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "switch (foo) { case ()";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing expression" );
+    }
+
+    text = "switch (foo) { case (bar)";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch (foo) { case (bar) test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending }" );
+    }
+
+    text = "switch (foo) { case (bar) test;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in switch statement" );
+    }
+
+    text = "switch (foo) { case (bar) {}";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending }" );
+    }
+
+    text = "switch (foo) { default";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "switch (foo) { default test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending }" );
+    }
+
+    text = "switch (foo) { default test;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in switch statement" );
+    }
+
+    text = "switch (foo) { default {}";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending }" );
+    }
 }
 
 TEST_CASE("Test Syntax Analyser For Loop")
@@ -994,4 +1438,319 @@ TEST_CASE("Test Syntax Analyser For Loop")
     REQUIRE( ((Operation*)((ForLoop*)AST[3])->iteration_expression)->right->type == "Literal" );
     REQUIRE( ((Literal*)((Operation*)((ForLoop*)AST[3])->iteration_expression)->right)->l_integer == 1 );
     REQUIRE( ((ForLoop*)AST[3])->for_code_block->content.size() == 0 );
+
+    text = "for";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "for test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "for (test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "for (1 0)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ;" );
+    }
+
+    text = "for (a; b)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing expression(s)" );
+    }
+
+    text = "for (a; b; c; d)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Too many expressions" );
+    }
+
+    text = "for (a; b; c)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "for (a; b; c) test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in for loop" );
+    }
+}
+
+TEST_CASE("Test Syntax Analyser Foreach Loop")
+{
+    string text = "for (int item : list) {}";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "ForEachLoop" );
+    REQUIRE( ((ForEachLoop*)AST[0])->declaration_expression->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)((ForEachLoop*)AST[0])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)((ForEachLoop*)AST[0])->declaration_expression)->name == "item" );
+    REQUIRE( ((ForEachLoop*)AST[0])->iteration_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((ForEachLoop*)AST[0])->iteration_expression)->name == "list" );
+    REQUIRE( ((ForEachLoop*)AST[0])->for_code_block->content.size() == 0 );
+
+    text = "for";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "for test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "for (test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "for (test :";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid expression in for loop" );
+    }
+
+    text = "for (int item :";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "for (int item : list";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "for (int item :)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing iteration expression" );
+    }
+
+    text = "for (int item : list)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "for (int item : list) test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in for loop" );
+    }
+}
+
+TEST_CASE("Test Syntax Analyser While Loop")
+{
+    string text = "while (true) {}";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "WhileLoop" );
+    REQUIRE( ((WhileLoop*)AST[0])->condition->type == "Literal" );
+    REQUIRE( ((Literal*)((WhileLoop*)AST[0])->condition)->l_boolean == true );
+    REQUIRE( ((WhileLoop*)AST[0])->while_code_block->content.size() == 0 );
+
+    text = "while";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "while test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing starting (" );
+    }
+
+    text = "while (";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "while (test";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
+
+    text = "while ()";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing expression" );
+    }
+
+    text = "while (test)";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "while (test) foo";
+
+    try {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in if statement" );
+    }
+}
+
+TEST_CASE("Test Syntax Analyser Return")
+{
+    string text = "return foo;";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Return" );
+    REQUIRE( ((Return*)AST[0])->expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Return*)AST[0])->expression)->name == "foo" );
+}
+
+TEST_CASE("Test Syntax Analyser Break")
+{
+    string text = "break;";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Break" );
+}
+
+TEST_CASE("Test Syntax Analyser Continue")
+{
+    string text = "continue;";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Continue" );
 }

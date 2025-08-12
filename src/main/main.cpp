@@ -61,7 +61,10 @@ int main(int argc, char *argv[])
 
     for (Node *node : AST)
     {
-        cout << *node << "\n";
+        if (node->type != "StatementEnd")
+        {
+            cout << *node << "\n";
+        }
     }
 
     return 0;

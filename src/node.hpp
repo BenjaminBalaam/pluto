@@ -73,6 +73,7 @@ class Literal : public Node
         std::optional<int> l_integer;
         std::optional<double> l_float;
         std::optional<std::string> l_string;
+        std::optional<bool> l_boolean;
 
         Literal();
 
@@ -172,9 +173,58 @@ class ForLoop : public Node
         Node *iteration_expression;
         CodeBlock *for_code_block;
 
-        ForLoop(Node *declaration_expression, Node*condition_expression, Node *iteration_expression, CodeBlock *for_code_block);
+        ForLoop(Node *declaration_expression, Node *condition_expression, Node *iteration_expression, CodeBlock *for_code_block);
 
         friend std::ostream &operator<<(std::ostream &os, const ForLoop &data);
+};
+
+class ForEachLoop : public Node
+{
+    public:
+        Node *declaration_expression;
+        Node *iteration_expression;
+        CodeBlock *for_code_block;
+
+        ForEachLoop(Node *declaration_expression, Node *iteration_expression, CodeBlock *for_code_block);
+
+        friend std::ostream &operator<<(std::ostream &os, const ForEachLoop &data);
+};
+
+class WhileLoop : public Node
+{
+    public:
+        Node *condition;
+        CodeBlock *while_code_block;
+
+        WhileLoop(Node *condition, CodeBlock *while_code_block);
+
+        friend std::ostream &operator<<(std::ostream &os, const WhileLoop &data);
+};
+
+class Return : public Node
+{
+    public:
+        Node *expression;
+
+        Return(Node *expression);
+
+        friend std::ostream &operator<<(std::ostream &os, const Return &data);
+};
+
+class Break : public Node
+{
+    public:
+        Break();
+
+        friend std::ostream &operator<<(std::ostream &os, const Break &data);
+};
+
+class Continue : public Node
+{
+    public:
+        Continue();
+
+        friend std::ostream &operator<<(std::ostream &os, const Continue &data);
 };
 
 class StatementEnd : public Node

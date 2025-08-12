@@ -7,12 +7,12 @@ using namespace std;
 
 TEST_CASE("Test Lexer Numbers")
 {
-    string text = "-12.4 .5 0. 2 -0b010 0o732 0xAF2 0xaf2";
+    string text = "12.4 .5 0. 2 0b010 0o732 0xAF2 0xaf2";
 
     vector<Token*> tokens = Tokenise(text);
 
     REQUIRE( tokens[0]->type == "Float" );
-    REQUIRE( get<2>(GetTokenValue(tokens[0])) == -12.4 );
+    REQUIRE( get<2>(GetTokenValue(tokens[0])) == 12.4 );
 
     REQUIRE( tokens[1]->type == "Float" );
     REQUIRE( get<2>(GetTokenValue(tokens[1])) == .5 );
@@ -24,7 +24,7 @@ TEST_CASE("Test Lexer Numbers")
     REQUIRE( get<1>(GetTokenValue(tokens[3])) == 2 );
 
     REQUIRE( tokens[4]->type == "Integer" );
-    REQUIRE( get<1>(GetTokenValue(tokens[4])) == -0b010 );
+    REQUIRE( get<1>(GetTokenValue(tokens[4])) == 0b010 );
 
     REQUIRE( tokens[5]->type == "Integer" );
     REQUIRE( get<1>(GetTokenValue(tokens[5])) == 0732 );
@@ -51,7 +51,7 @@ TEST_CASE("Test Lexer Invalid Numbers")
     REQUIRE( invalid_octal_tokens[0]->error->text == "Invalid character in octal integer" );
 }
 
-TEST_CASE("Test Lexer Strings")
+TEST_CASE("Test Lexer Strings")\
 {
     string text = "'foo' \"bar\" ```\nfoobar\n```";
 

@@ -15,14 +15,15 @@ vector<Token*> Tokenise(string text)
 
     regex re_string_start = regex("^([\"']|(```))");
     regex re_white_space = regex("^[ \t\f\r\n]");
-    regex re_integer = regex("^-?((0[box][0-9A-Fa-f]+)|([0-9]+))");
-    regex re_float = regex("^-?(([0-9]+\\.[0-9]*)|([0-9]*\\.[0-9]+))");
-    regex re_identifier = regex("^[a-zA-Z_][a-zA-Z0-9_]*");
-    regex re_control = regex("^[.,;]");
+    regex re_integer = regex("^((0[box][0-9A-Fa-f]+)|([0-9]+))");
+    regex re_float = regex("^(([0-9]+\\.[0-9]*)|([0-9]*\\.[0-9]+))");
+    regex re_bool = regex("^((false)|(true))");
+    regex re_identifier = regex("^([a-zA-Z_][a-zA-Z0-9_]*)");
+    regex re_control = regex("^[.,:;]");
     regex re_bracket = regex("^[\\(\\)\\[\\]\\{\\}]");
     regex re_operator = regex("^(([=!<>\\+\\-\\*\\/]=)|[\\+\\-\\*\\/\\$%\\^=<>!&\\|])");
-    regex re_comment_start = regex("^/[/\\*]");
-    regex re_comment_end = regex("^\\*/");
+    regex re_comment_start = regex("^(/[/\\*])");
+    regex re_comment_end = regex("^(\\*/)");
 
     smatch m;
 
@@ -271,15 +272,6 @@ vector<Token*> Tokenise(string text)
             int length = m[0].length();
 
             string string_value = m[0];
-            
-            bool negative = false;
-
-            if (string_value[0] == '-')
-            {
-                negative = true;
-
-                string_value.erase(0, 1);
-            }
 
             int value = 0;
 
@@ -352,12 +344,23 @@ vector<Token*> Tokenise(string text)
                 value = stoi(string_value);
             }
 
-            Integer *new_integer = new Integer(((negative) ? -1 : 1) * value);
+            Integer *new_integer = new Integer(value);
 
             new_integer->start = current_char;
             new_integer->end = current_char + m.length();
 
             tokens.push_back(new_integer);
+
+            EraseFront(&text, &current_char, m.length());
+        }
+        else if (regex_search(text, m, re_bool))
+        {
+            Boolean *new_boolean = new Boolean(m[0] == "true" ? true : false);
+
+            new_boolean->start = current_char;
+            new_boolean->end = current_char + m.length();
+
+            tokens.push_back(new_boolean);
 
             EraseFront(&text, &current_char, m.length());
         }

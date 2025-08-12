@@ -7,7 +7,7 @@
 
 using namespace std;
 
-vector<string> Keywords = { "public", "static", "const", "if", "else", "switch", "case", "default", "for", "while" };
+vector<string> Keywords = { "public", "static", "const", "if", "else", "switch", "case", "default", "for", "while", "return", "break", "continue" };
 
 ostream &operator<<(ostream &os, const Token &t)
 {
@@ -22,6 +22,10 @@ ostream &operator<<(ostream &os, const Token &t)
     else if (t.type == "String")
     {
         return os << (String&)t;
+    }
+    else if (t.type == "Boolean")
+    {
+        return os << (Boolean&)t;
     }
     else if (t.type == "Identifier")
     {
@@ -121,6 +125,16 @@ ostream &operator<<(ostream &os, const String &s)
     return os << "\"" << s.content << "\"";
 }
 
+Boolean::Boolean(bool boolean) : boolean(boolean)
+{
+    this->type = "Boolean";
+}
+
+ostream &operator<<(ostream &os, const Boolean &b)
+{
+    return os << (b.boolean ? "true" : "false");
+}
+
 Identifier::Identifier(string name) : name(name)
 {
     this->type = "Identifier";
@@ -171,40 +185,44 @@ ostream &operator<<(ostream &os, const Operator &o)
     return os << o.value;
 }
 
-tuple<string, int, double> GetTokenValue(Token *token)
+tuple<string, int, double, bool> GetTokenValue(Token *token)
 {
     if (token->type == "Integer")
     {
-        return tuple<string, int, double> { "", ((Integer*)token)->number, 0.0f };
+        return tuple<string, int, double, bool> { "", ((Integer*)token)->number, 0.0f, false };
     }
     else if (token->type == "Float")
     {
-        return tuple<string, int, double> { "", 0.0f, ((Float*)token)->number };
+        return tuple<string, int, double, bool> { "", 0, ((Float*)token)->number, false };
     }
     else if (token->type == "String")
     {
-        return tuple<string, int, double> { ((String*)token)->content, 0, 0.0f };
+        return tuple<string, int, double, bool> { ((String*)token)->content, 0, 0.0f, false };
+    }
+    else if (token->type == "Boolean")
+    {
+        return tuple<string, int, double, bool> { "", 0, 0.0f, ((Boolean*)token)->boolean };
     }
     else if (token->type == "Identifier")
     {
-        return tuple<string, int, double> { ((Identifier*)token)->name, 0, 0.0f };
+        return tuple<string, int, double, bool> { ((Identifier*)token)->name, 0, 0.0f, false };
     }
     else if (token->type == "Keyword")
     {
-        return tuple<string, int, double> { ((Keyword*)token)->name, 0, 0.0f };
+        return tuple<string, int, double, bool> { ((Keyword*)token)->name, 0, 0.0f, false };
     }
     else if (token->type == "Control")
     {
-        return tuple<string, int, double> { ((Control*)token)->value, 0, 0.0f };
+        return tuple<string, int, double, bool> { ((Control*)token)->value, 0, 0.0f, false };
     }
     else if (token->type == "Bracket")
     {
-        return tuple<string, int, double> { ((Bracket*)token)->value, 0, 0.0f };
+        return tuple<string, int, double, bool> { ((Bracket*)token)->value, 0, 0.0f, false };
     }
     else if (token->type == "Operator")
     {
-        return tuple<string, int, double> { ((Operator*)token)->value, 0, 0.0f };
+        return tuple<string, int, double, bool> { ((Operator*)token)->value, 0, 0.0f, false };
     }
 
-    return tuple<string, int, double> { "", 0, 0.0f };
+    return tuple<string, int, double, bool> { "", 0, 0.0f, false };
 }

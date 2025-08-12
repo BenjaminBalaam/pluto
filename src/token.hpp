@@ -54,6 +54,16 @@ class String : public Token
         friend std::ostream &operator<<(std::ostream &os, const String &s);
 };
 
+class Boolean : public Token
+{
+    public:
+        bool boolean;
+
+        Boolean(bool boolean);
+
+        friend std::ostream &operator<<(std::ostream &os, const Boolean &b);
+};
+
 class Identifier : public Token
 {
     public:
@@ -104,6 +114,6 @@ class Operator : public Token
         friend std::ostream &operator<<(std::ostream &os, const Operator &o);
 };
 
-std::tuple<std::string, int, double> GetTokenValue(Token *token);
+std::tuple<std::string, int, double, bool> GetTokenValue(Token *token);
 
 #endif

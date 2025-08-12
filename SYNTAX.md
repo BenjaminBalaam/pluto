@@ -73,3 +73,15 @@ Precendence of Operations
 ### While Statement
 
 `while (condition) { STATEMENTS }`
+
+### Return Statement
+
+`return expression;`
+
+### Break Statement
+
+`break;`
+
+### Continue Statement
+
+`continue;`

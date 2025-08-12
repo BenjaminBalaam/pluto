@@ -66,6 +66,26 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (ForLoop&)n;
     }
+    else if (n.type == "ForEachLoop")
+    {
+        return os << (ForEachLoop&)n;
+    }
+    else if (n.type == "WhileLoop")
+    {
+        return os << (WhileLoop&)n;
+    }
+    else if (n.type == "Return")
+    {
+        return os << (Return&)n;
+    }
+    else if (n.type == "Break")
+    {
+        return os << (Break&)n;
+    }
+    else if (n.type == "Continue")
+    {
+        return os << (Continue&)n;
+    }
     else if (n.type == "StatementEnd")
     {
         return os << (StatementEnd&)n;
@@ -161,6 +181,10 @@ ostream &operator<<(ostream &os, const Literal &data)
     else if (data.l_string)
     {
         return os << data.l_string.value();
+    }
+    else if (data.l_boolean)
+    {
+        return os << (data.l_boolean.value() ? "true" : "false");
     }
 
     return os;
@@ -332,7 +356,64 @@ ostream &operator<<(ostream &os, const ForLoop &data)
         os << *data.iteration_expression;
     }
 
-    return os << ") " << *data.for_code_block;;
+    return os << ") " << *data.for_code_block;
+}
+
+ForEachLoop::ForEachLoop(Node *declaration_expression, Node *iteration_expression, CodeBlock *for_code_block) : declaration_expression(declaration_expression), iteration_expression(iteration_expression), for_code_block(for_code_block)
+{
+    this->type = "ForEachLoop";
+}
+
+ostream &operator<<(ostream &os, const ForEachLoop &data)
+{
+    return os << "for (" << *data.declaration_expression << " : " << *data.iteration_expression << ") " << *data.for_code_block;
+}
+
+WhileLoop::WhileLoop(Node *condition, CodeBlock *while_code_block) : condition(condition), while_code_block(while_code_block)
+{
+    this->type = "WhileLoop";
+}
+
+ostream &operator<<(ostream &os, const WhileLoop &data)
+{
+    return os << "while (" << *data.condition << ") " << *data.while_code_block;
+}
+
+Return::Return(Node *expression) : expression(expression)
+{
+    this->type = "Return";
+}
+
+ostream &operator<<(ostream &os, const Return &data)
+{
+    if (data.expression == NULL)
+    {
+        return os << "return";
+    }
+    else
+    {
+        return os << "return " << *data.expression;
+    }
+}
+
+Break::Break()
+{
+    this->type = "Break";
+}
+
+ostream &operator<<(ostream &os, const Break &data)
+{
+    return os << "break";
+}
+
+Continue::Continue()
+{
+    this->type = "Continue";
+}
+
+ostream &operator<<(ostream &os, const Continue &data)
+{
+    return os << "continue";
 }
 
 StatementEnd::StatementEnd()
