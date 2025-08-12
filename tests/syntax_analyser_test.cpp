@@ -407,7 +407,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
 
 TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of operations
 {
-    string text = "!foo; bar = a; a >= b; a < b; a + b == c - d;";
+    string text = "!foo; bar = a; a >= b; a < b; a + b == c - d; func(a / b);";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "Operation" );
@@ -451,6 +451,14 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->left)->name == "c" );
     REQUIRE( ((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->right->type == "GetVariable" );
     REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->right)->name == "d" );
+
+    REQUIRE( AST[5]->type == "FunctionCall" );
+    REQUIRE( ((FunctionCall*)AST[5])->arguments[0]->type == "Operation" );
+    REQUIRE( ((Operation*)((FunctionCall*)AST[5])->arguments[0])->operator_string == "/" );
+    REQUIRE( (((Operation*)((FunctionCall*)AST[5])->arguments[0])->left)->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)(((Operation*)((FunctionCall*)AST[5])->arguments[0])->left))->name == "a" );
+    REQUIRE( (((Operation*)((FunctionCall*)AST[5])->arguments[0])->right)->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)(((Operation*)((FunctionCall*)AST[5])->arguments[0])->right))->name == "b" );
 
     text = "> a";
 
@@ -610,7 +618,7 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
 
 TEST_CASE("Test Syntax Analyser Function Call")
 {
-    string text = "foo(); bar(0.);";
+    string text = "foo(); bar(0.); foobar(a + b);";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "FunctionCall" );
@@ -620,6 +628,14 @@ TEST_CASE("Test Syntax Analyser Function Call")
     REQUIRE( AST[1]->type == "FunctionCall" );
     REQUIRE( ((FunctionCall*)AST[1])->name == "bar" );
     REQUIRE( ((Literal*)((FunctionCall*)AST[1])->arguments[0])->l_float == 0. );
+    
+    REQUIRE( AST[2]->type == "FunctionCall" );
+    REQUIRE( ((FunctionCall*)AST[2])->name == "foobar" );
+    REQUIRE( ((Operation*)((FunctionCall*)AST[2])->arguments[0])->operator_string == "+" );
+    REQUIRE( ((Operation*)((FunctionCall*)AST[2])->arguments[0])->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((FunctionCall*)AST[2])->arguments[0])->left)->name == "a" );
+    REQUIRE( ((Operation*)((FunctionCall*)AST[2])->arguments[0])->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((FunctionCall*)AST[2])->arguments[0])->right)->name == "b" );
 
     text = "foo(";
     

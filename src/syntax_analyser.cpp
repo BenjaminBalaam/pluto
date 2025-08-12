@@ -8,7 +8,7 @@
 
 using namespace std;
 
-pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<vector<Token*>, bool> return_flags)
+pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<vector<pair<Token*, bool>>, bool> return_flags)
 {
     vector<Node*> AST = vector<Node*>();
 
@@ -155,7 +155,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                             vector<Node*> data;
 
-                            tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Bracket(")") }, false });
+                            tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(","), new Bracket(")") }, get<0>(return_flags)), false });
 
                             if (tokens.size() == 0)
                             {
@@ -235,7 +235,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
                 }
 
-                tie(content, tokens) = AnalyseSyntax(tokens, { { new Bracket("}") }, false });
+                tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket("}") }, get<0>(return_flags)), false });
 
                 if (tokens.size() == 0)
                 {
@@ -277,7 +277,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
             vector<Node*> content;
 
-            tie(content, tokens) = AnalyseSyntax(tokens, { { new Bracket("}") }, false });
+            tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket("}") }, get<0>(return_flags)), false });
 
             if (tokens.size() == 0)
             {
@@ -304,7 +304,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
             vector<Node*> content;
 
-            tie(content, tokens) = AnalyseSyntax(tokens, { { new Control(";") }, false });
+            tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
 
             if (tokens.size() == 0)
             {
@@ -343,7 +343,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 vector<Node*> content;
 
-                tie(content, tokens) = AnalyseSyntax(tokens, { { new Control(";") }, false });
+                tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
 
                 if (tokens.size() == 0)
                 {
@@ -388,7 +388,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 {
                     vector<Node*> data;
 
-                    tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Operator(">"), new Control(";") }, false });
+                    tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(","), new Operator(">"), new Control(";") }, get<0>(return_flags)), false });
 
                     if (tokens.size() == 0 || (tokens.size() != 0 && tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";"))
                     {
@@ -585,7 +585,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 vector<Node*> data;
 
-                tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(";") }, false });
+                tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
 
                 if (tokens.size() == 0)
                 {
@@ -642,7 +642,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                     vector<Node*> data;
 
-                    tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Bracket(")") }, false });
+                    tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(","), new Bracket(")") }, get<0>(return_flags)), false });
 
                     if (tokens.size() == 0)
                     {
@@ -757,17 +757,38 @@ Node* GetASTEnd(vector<Node*> AST)
     }
 }
 
-bool ShouldReturn(Token *current_token, vector<Token*> return_tokens)
+bool ShouldReturn(Token *current_token, vector<pair<Token*, bool>> return_tokens)
 {
-    for (Token *ret_t : return_tokens)
+    for (pair<Token*, bool> ret_t : return_tokens)
     {
-        if (*ret_t == *current_token)
+        if (*get<0>(ret_t) == *current_token)
         {
             return true;
         }
     }
 
     return false;
+}
+
+vector<pair<Token*, bool>> GetReturnTokens(vector<Token*> new_return_tokens, vector<pair<Token*, bool>> existing_return_tokens)
+{
+    vector<pair<Token*, bool>> return_tokens = {};
+
+    for (Token* new_token : new_return_tokens)
+    {
+        return_tokens.push_back({new_token, false});
+    }
+
+    for (pair<Token*, bool> existing_token : existing_return_tokens) {
+        if (find(return_tokens.begin(), return_tokens.end(), pair<Token*, bool> {get<0>(existing_token), false}) != return_tokens.end())
+        {
+            continue;
+        }
+
+        return_tokens.push_back(pair<Token*, bool> {get<0>(existing_token), true});
+    }
+
+    return return_tokens;
 }
 
 bool EraseFront(vector<Token*> *tokens, int length)

@@ -28,6 +28,10 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (CodeBlock&)n;
     }
+    else if (n.type == "Operation")
+    {
+        return os << (Operation&)n;
+    }
     else if (n.type == "GetVariable")
     {
         return os << (GetVariable&)n;
