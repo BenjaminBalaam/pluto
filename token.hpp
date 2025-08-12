@@ -102,4 +102,6 @@ class Operator : public Token
         friend std::ostream& operator<<(std::ostream& os, const Operator& o);
 };
 
+std::tuple<std::string, int, float> GetTokenValue(Token* token);
+
 #endif

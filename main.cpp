@@ -6,6 +6,7 @@
 
 #include "main.hpp"
 #include "lexer.hpp"
+#include "syntax_analyser.hpp"
 #include "token.hpp"
 #include "error.hpp"
 
@@ -42,18 +43,27 @@ int main(int argc, char *argv[])
 
     vector<Token*> tokens = Tokenise(raw_text);
 
-    for (Token* token : tokens)
+    if (tokens[0]->error)
     {
-        if (!token->error)
-        {
-            cout << *token << "\n";
-        }
-        else
-        {
-            ThrowError(*token->error, token->start, token->end, line_numbers, lines);
-        }
+        return ThrowError(*tokens[0]->error, tokens[0]->start, tokens[0]->end, line_numbers, lines);
+    }
 
-        delete token;
+    vector<Node*> AST;
+
+    try
+    {
+        AST = get<0>(AnalyseSyntax(tokens));
+    }
+    catch (Node* node)
+    {
+        cout << *node;
+
+        return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
+    }
+
+    for (Node* node : AST)
+    {
+        cout << *node << "\n";
     }
 
     return 0;
