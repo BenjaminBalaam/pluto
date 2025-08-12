@@ -39,6 +39,8 @@ vector<Token*> Tokenise(string text)
             {
                 string_token->error = Error {SyntaxError, "Unterminated string literal"};
 
+                string_token->end = current_char;
+
                 return vector<Token*> { string_token };
             }
             else if (text[0] == string_start && !escaping_string)

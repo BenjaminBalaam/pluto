@@ -1,9 +1,9 @@
-all: clean build run
+all: run
 
 build:
-	g++ *.cpp -o main
+	g++ -g *.cpp -o main
 
-run:
+run: build
 	./main example.ps
 
 clean:
