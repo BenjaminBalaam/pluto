@@ -2,23 +2,25 @@
 
 ## Installation
 
--   Install gcc
-    Ubuntu:
-    `sudo apt-get install gcc`
+1.  Install gcc
 
--   Install make
-    Ubuntu:
-    `sudo apt-get install make`
+    -   Ubuntu:
+        `sudo apt-get install gcc`
 
--   Clone the github repository
+2.  Install make
+
+    -   Ubuntu:
+        `sudo apt-get install make`
+
+3.  Clone the github repository
     `git clone https://github.com/BenjaminBalaam/pluto-script.git`
 
--   Build the program with the makefile
+4.  Build the program with the makefile
     `make`
 
--   Run the program
-    Ubuntu:
-    `./pluto-script example.ps`
+5.  Run the program
+    -   Ubuntu:
+        `./pluto-script example.ps`
 
 ## Example.ps
 
