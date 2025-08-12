@@ -300,7 +300,24 @@ optional<Member> TypeDefinitionObject::GetMember(string name)
 
 string TypeDefinitionObject::to_string()
 {
-    return name + "<>";
+    if (!Types->Get(name))
+    {
+        stringstream s;
+        s << name << " {";
+
+        for (auto pair : members)
+        {
+            s << pair.first << ": " << pair.second << ", ";
+        }
+
+        s << "}";
+
+        return s.str();
+    }
+    else
+    {
+        return name;
+    }
 }
 
 TypeDefinitionObject::~TypeDefinitionObject()
@@ -308,7 +325,7 @@ TypeDefinitionObject::~TypeDefinitionObject()
 
 }
 
-ClassInstanceObject::ClassInstanceObject(Type class_type) : class_type(class_type)
+ClassInstanceObject::ClassInstanceObject(shared_ptr<Object> class_type, map<string, Member> members) : members(members)
 {
     this->type = Type(class_type);
 }
@@ -316,7 +333,14 @@ ClassInstanceObject::ClassInstanceObject(Type class_type) : class_type(class_typ
 string ClassInstanceObject::to_string()
 {
     stringstream s;
-    s << class_type << " {}";
+    s << type << " instance {";
+
+    for (auto pair : members)
+    {
+        s << pair.first << ": " << pair.second << ", ";
+    }
+
+    s << "}";
 
     return s.str();
 }
@@ -346,9 +370,16 @@ string FunctionObject::to_string()
 
     if (body.index() == 0)
     {
-        for (Node *node : get<0>(body))
+        vector<Node*> function = get<0>(body);
+
+        for (int i = 0; i < function.size(); i++)
         {
-            s << *node << "\n";
+            s << *function[i];
+
+            if (i < function.size() - 1)
+            {
+                s << "\n";
+            }
         }
     }
     else
@@ -418,7 +449,33 @@ shared_ptr<Environment> InitialiseInterpreterData()
     CreateTypeMethods();
     CreateFunctionMethods();
 
-    return shared_ptr<Environment>(new Environment(Types, CreateBuiltinFunctions()));
+    shared_ptr<Environment> main = shared_ptr<Environment>(new Environment(Types, CreateBuiltinFunctions()));
+
+    return shared_ptr<Environment>(new Environment(main, {}));
+}
+
+map<string, Member> VariablesToMembers(map<string, Variable> variables)
+{
+    map<string, Member> members = {};
+
+    for (auto& [member_name, member_value] : variables)
+    {
+        members.insert({member_name, Member(member_value.object, member_value.qualifiers)});
+    }
+
+    return members;
+}
+
+map<string, Variable> MembersToVariables(map<string, Member> members)
+{
+    map<string, Variable> variables = {};
+
+    for (auto& [variable_name, variable_value] : members)
+    {
+        variables.insert({variable_name, Variable(variable_value.object, variable_value.qualifiers)});
+    }
+
+    return variables;
 }
 
 shared_ptr<Environment> Types = std::shared_ptr<Environment>(new Environment(NULL, std::map<std::string, Variable> {}));
@@ -485,12 +542,12 @@ void CreateIntMethods()
     auto negativeFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new IntObject(-((IntObject*)env->Get("this")->object.get())->value));
     };
-    rawIntDefinition->members.insert({ "negative", CreateMethod(intDefinition, parameters, negativeFunction) });
+    rawIntDefinition->members.insert({ "negative", CreateMethod(intDefinition, {}, negativeFunction) });
 
     auto positiveFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new IntObject(+((IntObject*)env->Get("this")->object.get())->value));
     };
-    rawIntDefinition->members.insert({ "positive", CreateMethod(intDefinition, parameters, positiveFunction) });
+    rawIntDefinition->members.insert({ "positive", CreateMethod(intDefinition, {}, positiveFunction) });
 
     auto multiplyFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new IntObject(((IntObject*)env->Get("this")->object.get())->value * ((IntObject*)env->Get("other")->object.get())->value));
@@ -581,6 +638,11 @@ void CreateIntMethods()
         return shared_ptr<Object>(new VoidObject());
     };
     rawIntDefinition->members.insert({ "divide_assignment", CreateMethod(intDefinition, parameters, divideAssignmentFunction) });
+
+    auto toStringFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>(new StringObject(to_string(((IntObject*)env->Get("this")->object.get())->value)));
+    };
+    rawIntDefinition->members.insert({ "to_string", CreateMethod(intDefinition, {}, toStringFunction) });
 }
 
 void CreateFloatMethods()
@@ -598,12 +660,12 @@ void CreateFloatMethods()
     auto negativeFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new FloatObject(-((FloatObject*)env->Get("this")->object.get())->value));
     };
-    rawFloatDefinition->members.insert({ "negative", CreateMethod(floatDefinition, parameters, negativeFunction) });
+    rawFloatDefinition->members.insert({ "negative", CreateMethod(floatDefinition, {}, negativeFunction) });
 
     auto positiveFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new FloatObject(+((FloatObject*)env->Get("this")->object.get())->value));
     };
-    rawFloatDefinition->members.insert({ "positive", CreateMethod(floatDefinition, parameters, positiveFunction) });
+    rawFloatDefinition->members.insert({ "positive", CreateMethod(floatDefinition, {}, positiveFunction) });
 
     auto multiplyFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new FloatObject(((FloatObject*)env->Get("this")->object.get())->value * ((FloatObject*)env->Get("other")->object.get())->value));
@@ -694,6 +756,11 @@ void CreateFloatMethods()
         return shared_ptr<Object>(new VoidObject());
     };
     rawFloatDefinition->members.insert({ "divide_assignment", CreateMethod(floatDefinition, parameters, divideAssignmentFunction) });
+
+    auto toStringFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>(new StringObject(to_string(((FloatObject*)env->Get("this")->object.get())->value)));
+    };
+    rawFloatDefinition->members.insert({ "to_string", CreateMethod(floatDefinition, {}, toStringFunction) });
 }
 
 void CreateBoolMethods()
@@ -706,7 +773,7 @@ void CreateBoolMethods()
     auto notFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new BoolObject(!(((BoolObject*)env->Get("this")->object.get())->value)));
     };
-    rawBoolDefinition->members.insert({ "not", CreateMethod(boolDefinition, parameters, notFunction) });
+    rawBoolDefinition->members.insert({ "not", CreateMethod(boolDefinition, {}, notFunction) });
 
     auto equalityFunction = [] (shared_ptr<Environment> env) {
         return shared_ptr<Object>( new BoolObject(((BoolObject*)env->Get("this")->object.get())->value == ((BoolObject*)env->Get("other")->object.get())->value));
@@ -733,6 +800,11 @@ void CreateBoolMethods()
         return shared_ptr<Object>(new VoidObject());
     };
     rawBoolDefinition->members.insert({ "assignment", CreateMethod(boolDefinition, parameters, assignmentFunction) });
+
+    auto toStringFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>(new StringObject(to_string(((BoolObject*)env->Get("this")->object.get())->value)));
+    };
+    rawBoolDefinition->members.insert({ "to_string", CreateMethod(boolDefinition, {}, toStringFunction) });
 }
 
 void CreateStringMethods()
@@ -768,6 +840,11 @@ void CreateStringMethods()
         return shared_ptr<Object>(new VoidObject());
     };
     rawStringDefinition->members.insert({ "add_assignment", CreateMethod(stringDefinition, parameters, addAssignmentFunction) });
+
+    auto toStringFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>(new StringObject(((StringObject*)env->Get("this")->object.get())->value));
+    };
+    rawStringDefinition->members.insert({ "to_string", CreateMethod(stringDefinition, {}, toStringFunction) });
 }
 
 void CreateTypeMethods()
@@ -792,6 +869,11 @@ void CreateTypeMethods()
         return shared_ptr<Object>(new VoidObject());
     };
     rawTypeDefinition->members.insert({ "assignment", CreateMethod(typeDefinition, parameters, assignmentFunction) });
+
+    auto toStringFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>(new StringObject(((TypeObject*)env->Get("this")->object.get())->value.type_definition->to_string()));
+    };
+    rawTypeDefinition->members.insert({ "to_string", CreateMethod(typeDefinition, {}, toStringFunction) });
 }
 
 void CreateFunctionMethods()
@@ -808,4 +890,9 @@ void CreateFunctionMethods()
         return shared_ptr<Object>(new VoidObject());
     };
     rawFunctionDefinition->members.insert({ "assignment", CreateMethod(functionDefinition, parameters, assignmentFunction) });
+
+    auto toStringFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>(new StringObject(((IntObject*)env->Get("this")->object.get())->to_string()));
+    };
+    rawFunctionDefinition->members.insert({ "to_string", CreateMethod(functionDefinition, {}, toStringFunction) });
 }

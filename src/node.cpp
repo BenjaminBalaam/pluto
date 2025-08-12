@@ -50,6 +50,10 @@ void Node::CheckSemantics(vector<Node*> call_stack)
     {
         ((ClassDefinition*)this)->CheckSemantics(call_stack);
     }
+    else if (this->type == "InstanceClass")
+    {
+        ((InstanceClass*)this)->CheckSemantics(call_stack);
+    }
     else if (this->type == "MemberAccess")
     {
         ((MemberAccess*)this)->CheckSemantics(call_stack);
@@ -121,6 +125,10 @@ ostream &operator<<(ostream &os, const Node &n)
     else if (n.type == "ClassDefinition")
     {
         return os << (ClassDefinition&)n;
+    }
+    else if (n.type == "InstanceClass")
+    {
+        return os << (InstanceClass&)n;
     }
     else if (n.type == "MemberAccess")
     {
@@ -285,10 +293,7 @@ void CodeBlock::CheckSemantics(vector<Node*> call_stack)
     vector<Node*> new_call_stack = vector<Node*>(call_stack);
     new_call_stack.push_back(this);
 
-    for (Node *statement : this->content)
-    {
-        CheckStatement(statement, new_call_stack);
-    }
+    content = AnalyseSemantics(this->content, new_call_stack);
 }
 
 ostream &operator<<(ostream &os, const CodeBlock &data)
@@ -402,10 +407,7 @@ void ClassDefinition::CheckSemantics(vector<Node*> call_stack)
     vector<Node*> new_call_stack = vector<Node*>(call_stack);
     new_call_stack.push_back(this);
 
-    for (Node *statement : this->body)
-    {
-        CheckStatement(statement, new_call_stack);
-    }
+    body = AnalyseSemantics(this->body, new_call_stack);
 }
 
 ostream &operator<<(ostream &os, const ClassDefinition &data)
@@ -427,6 +429,31 @@ ostream &operator<<(ostream &os, const ClassDefinition &data)
     os << "}";
 
     return os;
+}
+
+InstanceClass::InstanceClass(string name, vector<Node*> arguments) : name(name), arguments(arguments)
+{
+    this->type = "InstanceClass";
+}
+
+void InstanceClass::CheckSemantics(vector<Node*> call_stack)
+{
+    for (Node *expression : this->arguments)
+    {
+        CheckExpression(expression, call_stack);
+    }
+}
+
+ostream &operator<<(ostream &os, const InstanceClass &data)
+{
+    os << "new " << data.name << "(";
+
+    for (Node *node : data.arguments)
+    {
+        os << *node << ", ";
+    }
+
+    return os << ")";
 }
 
 MemberAccess::MemberAccess(string name, Node *statement) : name(name), statement(statement)
@@ -456,7 +483,7 @@ void IfStatement::CheckSemantics(vector<Node*> call_stack)
 
     CheckExpression(this->if_expression, call_stack);
 
-    CheckStatement(this->if_code_block, new_call_stack);
+    CheckExpression(this->if_code_block, new_call_stack);
 
     for (Node *expression : this->else_if_expressions)
     {
@@ -583,7 +610,7 @@ void ForEachLoop::CheckSemantics(vector<Node*> call_stack)
     vector<Node*> new_call_stack = vector<Node*>(call_stack);
     new_call_stack.push_back(this);
 
-    CheckExpression(this->declaration_expression, call_stack);
+    CheckStatement(this->declaration_expression, call_stack);
     CheckExpression(this->iteration_expression, call_stack);
 
     CheckExpression(this->for_code_block, new_call_stack);

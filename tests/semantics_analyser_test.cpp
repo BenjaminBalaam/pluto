@@ -69,6 +69,20 @@ TEST_CASE("Test Semantics Analyser Semicolons")
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending ;" );
     }
+
+    text = "if (true) { int a = 0 }";
+
+    try
+    {
+        AnalyseSemantics(get<0>(AnalyseSyntax(Tokenise(text))));
+
+        FAIL();
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending ;" );
+    }
 }
 
 TEST_CASE("Test Semantics Analyser Check Statement")

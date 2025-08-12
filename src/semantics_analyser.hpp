@@ -14,4 +14,6 @@ void CheckExpression(Node *expression, std::vector<Node*> call_stack);
 
 bool InCallStack(std::vector<Node*> call_stack, std::string type);
 
+int CallStackPosition(std::vector<Node*> call_stack, std::string type);
+
 #endif

@@ -682,6 +682,20 @@ TEST_CASE("Test Syntax Analyser Get Variable")
 
     REQUIRE( AST[2]->type == "GetVariable" );
     REQUIRE( ((GetVariable*)AST[2])->name == "bar" );
+
+    text = "test() foo;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+
+        FAIL();
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending ;" );
+    }
 }
 
 TEST_CASE("Test Syntax Analyser Assign Variable")

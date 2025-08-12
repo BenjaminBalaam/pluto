@@ -12,6 +12,11 @@ vector<Node*> AnalyseSemantics(vector<Node*> AST, vector<Node*> call_stack)
 {
     vector<Node*> new_AST = {};
 
+    if (AST.size() == 0)
+    {
+        return new_AST;
+    }
+
     bool semicolon_needed = false;
 
     if (AST[AST.size() - 1]->type != "ClassDefinition" && AST[AST.size() - 1]->type != "IfStatement" && AST[AST.size() - 1]->type != "SwitchStatement" &&
@@ -69,11 +74,14 @@ void CheckStatement(Node *statement, vector<Node*> call_stack)
         ThrowError(statement->start, statement->end, Error {SyntaxError, "Invalid expression"});
     }
 
-    if (statement->type == "Return" && !InCallStack(call_stack, "FunctionDefinition"))
+    if (statement->type == "Return" && !InCallStack(call_stack, "CodeBlock"))
     {
         ThrowError(statement->start, statement->end, Error {SyntaxError, "Return outside function"});
     }
-    else if ((statement->type == "Break" || statement->type == "Continue") && !InCallStack(call_stack, "ForLoop") && !InCallStack(call_stack, "ForEachLoop") && !InCallStack(call_stack, "WhileLoop"))
+    else if ((statement->type == "Break" || statement->type == "Continue") &&
+              !InCallStack(call_stack, "ForLoop") && !InCallStack(call_stack, "ForEachLoop") && !InCallStack(call_stack, "WhileLoop") &&
+              (!InCallStack(call_stack, "FunctionCall") || (CallStackPosition(call_stack, "ForLoop") < CallStackPosition(call_stack, "CodeBlock")) ||
+              (CallStackPosition(call_stack, "ForEachLoop") < CallStackPosition(call_stack, "CodeBlock")) || (CallStackPosition(call_stack, "WhileLoop") < CallStackPosition(call_stack, "CodeBlock"))))
     {
         if (statement->type == "Break")
         {
@@ -120,4 +128,19 @@ bool InCallStack(vector<Node*> call_stack, string type)
     }
 
     return false;
+}
+
+int CallStackPosition(vector<Node*> call_stack, string type)
+{
+    int position = -1;
+
+    for (int i = 0; i < call_stack.size(); i++)
+    {
+        if (call_stack[i]->type == type)
+        {
+            position = i;
+        }
+    }
+
+    return position;
 }

@@ -814,6 +814,10 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                     node = new DeclareVariable(qualifier, variable_type, ((Identifier*)tokens[0])->name, NULL);
                 }
+                else
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing ending ;"});
+                }
 
                 node->start = start;
                 node->end = tokens[0]->end;
@@ -950,6 +954,36 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 AST.push_back(class_definition);
 
                 EraseFront(&tokens, 1);
+            }
+            else if (get<0>(GetTokenValue(tokens[0])) == "new")
+            {
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                if (data.size() == 0)
+                {
+                    ThrowError(tokens[0]->start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (data[0]->type != "FunctionCall")
+                {
+                    ThrowError(tokens[0]->start, data[0]->end, Error {SyntaxError, "Invalid character in class instance"});
+                }
+
+                FunctionCall *function_call = (FunctionCall*)data[0];
+
+                InstanceClass *instance_class = new InstanceClass(function_call->name, function_call->arguments);
+
+                instance_class->start = start;
+                instance_class->end = function_call->end;
+
+                AST.push_back(instance_class);
             }
             else if (get<0>(GetTokenValue(tokens[0])) == "if")
             {
@@ -1586,7 +1620,9 @@ bool StatementStarted(std::vector<Node*> AST)
 {
     Node *n = GetASTEnd(AST);
 
-    if (GetASTEnd(AST) == NULL || GetASTEnd(AST)->type == "StatementEnd")
+    if (GetASTEnd(AST) == NULL || GetASTEnd(AST)->type == "StatementEnd" || GetASTEnd(AST)->type == "ClassDefinition" ||
+        GetASTEnd(AST)->type == "IfStatement" || GetASTEnd(AST)->type == "SwitchStatememnt" || GetASTEnd(AST)->type == "ForLoop" ||
+        GetASTEnd(AST)->type == "ForEachLoop" || GetASTEnd(AST)->type == "WhileLoop")
     {
         return false;
     }

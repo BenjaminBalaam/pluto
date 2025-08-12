@@ -206,9 +206,9 @@ class TypeDefinitionObject : public Object
 class ClassInstanceObject : public Object
 {
     public:
-        Type class_type;
+        std::map<std::string, Member> members;
 
-        ClassInstanceObject(Type class_type);
+        ClassInstanceObject(std::shared_ptr<Object> class_type, std::map<std::string, Member> members);
 
         std::string to_string();
 
@@ -252,6 +252,10 @@ class ErrorObject : public Object
 
         ~ErrorObject();
 };
+
+std::map<std::string, Member> VariablesToMembers(std::map<std::string, Variable> variables);
+
+std::map<std::string, Variable> MembersToVariables(std::map<std::string, Member> members);
 
 std::shared_ptr<Environment> InitialiseInterpreterData();
 

@@ -11,6 +11,7 @@ enum ERROR_TYPE
     TypeError,
     FunctionError,
     OperationError,
+    ClassError,
 };
 
 std::ostream &operator<<(std::ostream &os, const ERROR_TYPE &e);

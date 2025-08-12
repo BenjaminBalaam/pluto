@@ -172,6 +172,19 @@ class ClassDefinition : public Node
         friend std::ostream &operator<<(std::ostream &os, const ClassDefinition &data);
 };
 
+class InstanceClass : public Node
+{
+    public:
+        std::string name;
+        std::vector<Node*> arguments;
+
+        InstanceClass(std::string name, std::vector<Node*> arguments);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
+
+        friend std::ostream &operator<<(std::ostream &os, const InstanceClass &data);
+};
+
 class MemberAccess : public Node
 {
     public:

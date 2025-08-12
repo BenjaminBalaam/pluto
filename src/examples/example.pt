@@ -1,1 +1,3 @@
-int a = random();
+int num = 100;
+
+string num_string = num.to_string();

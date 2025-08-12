@@ -234,7 +234,200 @@ pair<shared_ptr<Object>, RETURN_REASON> Interpret(vector<Node*> AST, shared_ptr<
 
             return_value = CallFunction(function, argument_values, env, call_stack);
         }
-        // TODO: ClassDefinition, MemberAccess
+        else if (node->type == "ClassDefinition")
+        {
+            ClassDefinition *class_definition = (ClassDefinition*)node;
+
+            // TODO: Add interfaces
+
+            shared_ptr<Environment> class_env = shared_ptr<Environment>(new Environment(env, {}));
+
+            vector<Call> class_call_stack = vector<Call>(call_stack);
+            class_call_stack.push_back(Call("ClassDefinition", optional<Type>()));
+
+            Interpret(class_definition->body, class_env, class_call_stack);
+
+            map<string, Member> class_members = VariablesToMembers(class_env->variables);
+
+            // TODO: Add qualifiers
+            env->Add(class_definition->name, Variable(shared_ptr<Object>(new TypeDefinitionObject(class_definition->name, class_members)), Qualifier()));
+
+            return_value = shared_ptr<Object>(new VoidObject());
+        }
+        else if (node->type == "InstanceClass")
+        {
+            InstanceClass *instance_class = (InstanceClass*)node;
+
+            optional<Variable> optional_definition = env->Get(instance_class->name);
+
+            if (!optional_definition)
+            {
+                throw ErrorObject(instance_class->start, instance_class->end, Error {ClassError, "No class with name '" + instance_class->name + "'"});
+            }
+
+            TypeDefinitionObject *definition = (TypeDefinitionObject*)optional_definition->object.get();
+
+            shared_ptr<Object> instance = shared_ptr<Object>(new ClassInstanceObject(optional_definition->object, {}));
+
+            optional<Member> optional_constructor = definition->GetMember(instance_class->name);
+
+            if (!optional_constructor)
+            {
+                return_value = instance;
+
+                continue;
+            }
+
+            map<string, Variable> class_methods = {};
+            map<string, Variable> class_attributes = {};
+
+            for (auto& [name, member] : definition->members)
+            {
+                if (dynamic_cast<FunctionObject*>(member.object.get()))
+                {
+                    class_methods.insert({ name, Variable(member.object, member.qualifiers) });
+                }
+                else
+                {
+                    class_attributes.insert({ name, Variable(member.object, member.qualifiers) });
+                }
+            }
+
+            class_attributes.insert({ "this", Variable(instance, Qualifier()) });
+
+            shared_ptr<Environment> class_env = shared_ptr<Environment>(new Environment(env, class_methods));
+
+            shared_ptr<Environment> constructor_env = shared_ptr<Environment>(new Environment(class_env, class_attributes));
+
+            vector<Call> constructor_call_stack = vector<Call>(call_stack);
+            constructor_call_stack.push_back(Call("InstanceClass", optional<Type>(Type(env->Get("void")->object))));
+
+            FunctionObject *constructor = dynamic_cast<FunctionObject*>(optional_constructor->object.get());
+
+            if (!constructor)
+            {
+                throw ErrorObject(instance_class->start, instance_class->end, Error {ClassError, "Class member variable with constructor name"});
+            }
+
+            map<string, Variable> argument_values = {};
+
+            // TODO: Deal with array and map arguments (* and **)
+
+            for (int i = 0; i < constructor->parameters.size(); i++)
+            {
+                if (i >= instance_class->arguments.size())
+                {
+                    if (!constructor->parameters[i].default_argument)
+                    {
+                        stringstream error;
+                        error << "Expected (";
+
+                        for (int p = 0; p < constructor->parameters.size(); p++)
+                        {
+                            error << constructor->parameters[p];
+                            if (p < constructor->parameters.size() - 1) error << ", ";
+                        }
+
+                        error << ") too few arguments";
+
+                        throw ErrorObject(instance_class->start, instance_class->end, Error {FunctionError, error.str()});
+                    }
+
+                    argument_values.insert({constructor->parameters[i].name, Variable(get<0>(Interpret({constructor->parameters[i].default_argument.value()}, env, call_stack)), Qualifier())});
+                }
+                else
+                {
+                    shared_ptr<Object> value = get<0>(Interpret({instance_class->arguments[i]}, env, call_stack));
+
+                    if (constructor->parameters[i].type != value->type)
+                    {
+                        stringstream s;
+                        s << "A value of type '" << value->type << "' cannot be passed into parameter of type '" << constructor->parameters[i].type << "'";
+
+                        throw ErrorObject(instance_class->arguments[i]->start, instance_class->arguments[i]->end, Error {TypeError, s.str()});
+                    }
+
+                    argument_values.insert({constructor->parameters[i].name, Variable(value, Qualifier())});
+                }
+            }
+
+            CallFunction(constructor, argument_values, constructor_env, constructor_call_stack);
+
+            map<string, Member> instance_members = {};
+
+            for (auto& [member_name, member_value] : constructor_env->variables)
+            {
+                if (member_name != "this")
+                {
+                    instance_members.insert({member_name, Member(member_value.object, member_value.qualifiers)});
+                }
+            }
+
+            ((ClassInstanceObject*)instance.get())->members.insert(instance_members.begin(), instance_members.end());
+
+            return_value = instance;
+        }
+        else if (node->type == "MemberAccess")
+        {
+            MemberAccess *member_access = (MemberAccess*)node;
+
+            optional<Variable> optional_type_definition = env->Get(member_access->name);
+
+            if (!optional_type_definition)
+            {
+                throw ErrorObject(member_access->start, member_access->end, Error {IdentifierError, "No object with name '" + member_access->name + "'"});
+            }
+
+            ClassInstanceObject *object = dynamic_cast<ClassInstanceObject*>(optional_type_definition->object.get());
+
+            if (!object)
+            {
+                throw ErrorObject(member_access->start, member_access->end, Error {IdentifierError, "Object '" + member_access->name + "' is not a class instance"});
+            }
+
+            string value_name;
+
+            if (member_access->statement->type == "GetVariable")
+            {
+                value_name = ((GetVariable*)member_access->statement)->name;
+            }
+            else if (member_access->statement->type == "FunctionCall")
+            {
+                value_name = ((FunctionCall*)member_access->statement)->name;
+            }
+
+            bool found_name = false;
+
+            for (auto& [name, _] : object->members)
+            {
+                if (name == value_name)
+                {
+                    found_name = true;
+                }
+            }
+
+            for (auto& [name, _] : ((TypeDefinitionObject*)object->type.type_definition.get())->members)
+            {
+                if (name == value_name)
+                {
+                    found_name = true;
+                }
+            }
+
+            if (!found_name)
+            {
+                throw ErrorObject(member_access->start, member_access->end, Error {IdentifierError, "'" + value_name + "' is not a member of this object"});
+            }
+
+            map<string, Variable> vars = MembersToVariables(object->members);
+            map<string, Variable> methods = MembersToVariables(((TypeDefinitionObject*)object->type.type_definition.get())->members);
+            vars.insert(methods.begin(), methods.end());
+            vars.insert({ "this", Variable(optional_type_definition->object, Qualifier()) });
+
+            shared_ptr<Environment> member_access_env = shared_ptr<Environment>(new Environment(env, vars));
+
+            return_value = get<0>(Interpret({member_access->statement}, member_access_env, call_stack));
+        }
         else if (node->type == "IfStatement")
         {
             IfStatement *if_statement = (IfStatement*)node;

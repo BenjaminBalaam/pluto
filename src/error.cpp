@@ -22,6 +22,8 @@ ostream &operator<<(ostream &os, const ERROR_TYPE &e)
             return os << "FunctionError";
         case OperationError:
             return os << "OperationError";
+        case ClassError:
+            return os << "ClassError";
     }
 
     return os;
