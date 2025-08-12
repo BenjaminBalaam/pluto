@@ -58,6 +58,10 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (IfStatement&)n;
     }
+    else if (n.type == "SwitchStatement")
+    {
+        return os << (SwitchStatement&)n;
+    }
     else if (n.type == "StatementEnd")
     {
         return os << (StatementEnd&)n;
@@ -269,6 +273,28 @@ ostream &operator<<(ostream &os, const IfStatement &data)
     if (data.else_code_block != NULL)
     {
         os << " else " << *data.else_code_block;
+    }
+
+    return os;
+}
+
+SwitchStatement::SwitchStatement(Node *switch_expression, vector<Node*> case_expressions, vector<CodeBlock*> case_code_blocks, CodeBlock *default_code_block) : switch_expression(switch_expression), case_expressions(case_expressions), case_code_blocks(case_code_blocks), default_code_block(default_code_block)
+{
+    this->type = "SwitchStatement";
+}
+
+ostream &operator<<(ostream &os, const SwitchStatement &data)
+{
+    os << "switch (" << *data.switch_expression << ") {";
+
+    for (int i = 0; i < data.case_expressions.size(); i++)
+    {
+        os << " case (" << *data.case_expressions[i] << ") " << *data.case_code_blocks[i];
+    }
+
+    if (data.default_code_block != NULL)
+    {
+        os << " default " << *data.default_code_block;
     }
 
     return os;

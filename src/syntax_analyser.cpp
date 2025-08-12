@@ -868,7 +868,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 while (true)
                 {
-                    if (tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else" || tokens[1]->type != "Keyword" || ((Keyword*)tokens[1])->name != "if")
+                    if (tokens.size() == 0 || tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else" || tokens[1]->type != "Keyword" || ((Keyword*)tokens[1])->name != "if")
                     {
                         break;
                     }
@@ -966,6 +966,167 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 if_statement->end = else_code_block->end;
 
                 AST.push_back(if_statement);
+            }
+            else if (get<0>(GetTokenValue(tokens[0])) == "switch")
+            {
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing starting ("});
+                }
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket(")") }, get<0>(return_flags)), false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                }
+
+                if (data.size() == 0)
+                {
+                    ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression"});
+                }
+
+                Node *switch_expression = data[0];
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "{")
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing starting {"});
+                }
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                SwitchStatement *switch_statement = new SwitchStatement(switch_expression, {}, {}, NULL);
+
+                while (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "}")
+                {
+                    if (tokens[0]->type == "Keyword" && ((Keyword*)tokens[0])->name == "default")
+                    {
+                        if (EraseFront(&tokens, 1))
+                        {
+                            ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        }
+
+                        tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                        if (tokens.size() == 0)
+                        {
+                            ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
+                        }
+
+                        if (data.size() == 0)
+                        {
+                            ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        }
+
+                        if (data[0]->type != "CodeBlock")
+                        {
+                            ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in switch statement"});
+                        }
+
+                        CodeBlock *default_code_block = (CodeBlock*)data[0];
+
+                        switch_statement->default_code_block = default_code_block;
+
+                        if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "}")
+                        {
+                            ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing ending }"});
+                        }
+
+                        break;
+                    }
+
+                    if (tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "case")
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Invalid character in switch statement"});
+                    }
+
+                    int case_start = tokens[0]->start;
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(case_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
+                    {
+                        ThrowError(case_start, file_end, Error {SyntaxError, "Missing starting ("});
+                    }
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(case_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    vector<Node*> data;
+
+                    tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket(")") }, get<0>(return_flags)), false });
+
+                    if (tokens.size() == 0)
+                    {
+                        ThrowError(case_start, file_end, Error {SyntaxError, "Missing ending )"});
+                    }
+
+                    if (data.size() == 0)
+                    {
+                        ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression"});
+                    }
+
+                    Node *case_expression = data[0];
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(case_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                    if (tokens.size() == 0)
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
+                    }
+
+                    if (data.size() == 0)
+                    {
+                        ThrowError(case_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    if (data[0]->type != "CodeBlock")
+                    {
+                        ThrowError(case_start, data[0]->end, Error {SyntaxError, "Invalid character in switch statement"});
+                    }
+
+                    CodeBlock *case_code_block = (CodeBlock*)data[0];
+
+                    switch_statement->case_expressions.push_back(case_expression);
+                    switch_statement->case_code_blocks.push_back(case_code_block);
+                }
+
+                switch_statement->start = start;
+                switch_statement->end = tokens[0]->end;
+
+                AST.push_back(switch_statement);
+
+                EraseFront(&tokens, 1);
             }
         }
         else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";")

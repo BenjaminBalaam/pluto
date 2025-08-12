@@ -151,6 +151,19 @@ class IfStatement : public Node
         friend std::ostream &operator<<(std::ostream &os, const IfStatement &data);
 };
 
+class SwitchStatement : public Node
+{
+    public:
+        Node *switch_expression;
+        std::vector<Node*> case_expressions;
+        std::vector<CodeBlock*> case_code_blocks;
+        CodeBlock *default_code_block;
+
+        SwitchStatement(Node *switch_expression, std::vector<Node*> case_expressions, std::vector<CodeBlock*> case_code_blocks, CodeBlock *default_code_block);
+
+        friend std::ostream &operator<<(std::ostream &os, const SwitchStatement &data);
+};
+
 class StatementEnd : public Node
 {
     public:

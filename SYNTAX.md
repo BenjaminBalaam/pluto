@@ -63,7 +63,7 @@ Precendence of Operations
 
 ### Switch Statement
 
-`switch (identifier) { case value { STATEMENTS } ... default { STATEMENTS } }`
+`switch (expression) { case (expression) { STATEMENTS } ... default { STATEMENTS } }`
 
 ### For Statements
 

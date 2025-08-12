@@ -902,3 +902,39 @@ TEST_CASE("Test Syntax Analyser If Statements")
     REQUIRE( ((IfStatement*)AST[3])->else_if_code_blocks[1]->content.size() == 0 );
     REQUIRE( ((IfStatement*)AST[1])->else_code_block->content.size() == 0 );
 }
+
+TEST_CASE("Test Syntax Analyser Switch Statement")
+{
+    string text = "switch (exp) {} switch (exp1) { case (exp2) {} } switch (exp1) { case (exp2) {} case (exp3) {} default {} }";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "SwitchStatement" );
+    REQUIRE( ((SwitchStatement*)AST[0])->switch_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((SwitchStatement*)AST[0])->switch_expression)->name == "exp" );
+    REQUIRE( ((SwitchStatement*)AST[0])->case_expressions.size() == 0 );
+    REQUIRE( ((SwitchStatement*)AST[0])->case_code_blocks.size() == 0 );
+    REQUIRE( ((SwitchStatement*)AST[0])->default_code_block == NULL );
+
+    REQUIRE( AST[1]->type == "SwitchStatement" );
+    REQUIRE( ((SwitchStatement*)AST[1])->switch_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((SwitchStatement*)AST[1])->switch_expression)->name == "exp1" );
+    REQUIRE( ((SwitchStatement*)AST[1])->case_expressions.size() == 1 );
+    REQUIRE( ((SwitchStatement*)AST[1])->case_expressions[0]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((SwitchStatement*)AST[1])->case_expressions[0])->name == "exp2" );
+    REQUIRE( ((SwitchStatement*)AST[1])->case_code_blocks.size() == 1 );
+    REQUIRE( ((SwitchStatement*)AST[1])->case_code_blocks[0]->content.size() == 0 );
+    REQUIRE( ((SwitchStatement*)AST[1])->default_code_block == NULL );
+
+    REQUIRE( AST[2]->type == "SwitchStatement" );
+    REQUIRE( ((SwitchStatement*)AST[2])->switch_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((SwitchStatement*)AST[2])->switch_expression)->name == "exp1" );
+    REQUIRE( ((SwitchStatement*)AST[2])->case_expressions.size() == 2 );
+    REQUIRE( ((SwitchStatement*)AST[2])->case_expressions[0]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((SwitchStatement*)AST[2])->case_expressions[0])->name == "exp2" );
+    REQUIRE( ((SwitchStatement*)AST[2])->case_expressions[1]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((SwitchStatement*)AST[2])->case_expressions[1])->name == "exp3" );
+    REQUIRE( ((SwitchStatement*)AST[2])->case_code_blocks.size() == 2 );
+    REQUIRE( ((SwitchStatement*)AST[2])->case_code_blocks[0]->content.size() == 0 );
+    REQUIRE( ((SwitchStatement*)AST[2])->case_code_blocks[1]->content.size() == 0 );
+    REQUIRE( ((SwitchStatement*)AST[2])->default_code_block->content.size() == 0 );
+}

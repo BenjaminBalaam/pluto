@@ -4,7 +4,6 @@
 
 ### Features
 
--   [ ] Add selection statements
 -   [ ] Add iteration statements
 -   [ ] Add classes
 
