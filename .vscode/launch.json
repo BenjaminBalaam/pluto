@@ -5,7 +5,7 @@
             "name": "C/C++: g++ build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/pluto-script",
+            "program": "${workspaceFolder}/pluto",
             "args": ["example.ps"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -1,10 +1,10 @@
 all: build
 
 build:
-	g++ -g *.cpp -o pluto-script
+	g++ -g *.cpp -o pluto
 
 run: build
-	./pluto-script example.ps
+	./pluto example.ps
 
 clean:
-	rm -f pluto-script
+	rm -f pluto
