@@ -5,10 +5,10 @@
 #include <regex>
 
 #include "main.hpp"
-#include "lexer.hpp"
-#include "syntax_analyser.hpp"
-#include "token.hpp"
-#include "error.hpp"
+#include "../lexer.hpp"
+#include "../syntax_analyser.hpp"
+#include "../token.hpp"
+#include "../error.hpp"
 
 using namespace std;
 

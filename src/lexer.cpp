@@ -15,12 +15,12 @@ vector<Token*> Tokenise(string text)
 
     regex re_string_start = regex("^([\"']|(```))");
     regex re_white_space = regex("^[ \t\f\r\n]");
-    regex re_integer = regex("^-?(0[box])?[0-9]+");
-    regex re_float = regex("^[0-9]+-?[0-9]+");
+    regex re_integer = regex("^-?((0[box][0-9A-Fa-f]+)|([0-9]+))");
+    regex re_float = regex("^-?([0-9]+\\.[0-9]*)|([0-9]*\\.[0-9]+)");
     regex re_identifier = regex("^[a-zA-Z_][a-zA-Z0-9_]*");
     regex re_control = regex("^[.,;]");
     regex re_bracket = regex("^[\\(\\)\\[\\]\\{\\}]");
-    regex re_operator = regex("^([=!<>]=)|[\\+\\-\\*/%\\^=<>!&\\|]");
+    regex re_operator = regex("^(([=!<>\\+\\-\\*\\/]=)|[\\+\\-\\*\\/\\$%\\^=<>!&\\|])");
     regex re_comment_start = regex("^/[/\\*]");
     regex re_comment_end = regex("^\\*/");
 
@@ -41,7 +41,7 @@ vector<Token*> Tokenise(string text)
     {
         if (currently_string)
         {
-            if (string_start == '`' && text != "\n")
+            if (string_start == '`' && text != "\n" && text[0] != '`')
             {
                 string_token->content.append({text[0]});
 
@@ -59,7 +59,7 @@ vector<Token*> Tokenise(string text)
             }
             else if (text[0] == string_start && !escaping)
             {
-                if (string_start == '`' && !regex_search(text, re_string_start))
+                if (string_start == '`' && !(text.size() >= 3 && text[1] == '`' && text[2] == '`'))
                 {
                     string_token->content.append({text[0]});
 
@@ -73,7 +73,14 @@ vector<Token*> Tokenise(string text)
                     
                     tokens.push_back(string_token);
 
-                    EraseFront(&text, &current_char, 1);
+                    if (string_start == '`')
+                    {
+                        EraseFront(&text, &current_char, 3);
+                    }
+                    else
+                    {
+                        EraseFront(&text, &current_char, 1);
+                    }
                 }
             }
             else if (escaping)
@@ -114,7 +121,7 @@ vector<Token*> Tokenise(string text)
                     default:
                         smatch escape_m;
 
-                        regex re_octal = regex("^[0-7]{1,3}");
+                        regex re_octal = regex("^[0-3][0-7]{0,2}");
                         regex re_hex = regex("^x[0-9a-fA-F]{2}");
                         regex re_hex_16 = regex("^u[0-9a-fA-F]{4}");
                         regex re_hex_32 = regex("^u[0-9a-fA-F]{8}");
@@ -129,25 +136,31 @@ vector<Token*> Tokenise(string text)
                         }
                         else if (regex_search(text, escape_m, re_hex))
                         {
-                            string_token->content.append({(char)stoi(escape_m[0], 0, 16)});
+                            string number = ((string)escape_m[0]).substr(1);
 
-                            EraseFront(&text, &current_char, 2);
+                            string_token->content.append({(char)stoi(number, 0, 16)});
 
-                            continue;
-                        }
-                        else if (regex_search(text, escape_m, re_hex_16))
-                        {
-                            string_token->content.append({(char)stoi(escape_m[0], 0, 16)});
-
-                            EraseFront(&text, &current_char, 4);
+                            EraseFront(&text, &current_char, 3);
 
                             continue;
                         }
                         else if (regex_search(text, escape_m, re_hex_32))
                         {
-                            string_token->content.append({(char)stoi(escape_m[0], 0, 16)});
+                            string number = ((string)escape_m[0]).substr(1);
 
-                            EraseFront(&text, &current_char, 8);
+                            string_token->content.append(UnicodeToUTF8(stol(number, 0, 16)));
+
+                            EraseFront(&text, &current_char, 9);
+
+                            continue;
+                        }
+                        else if (regex_search(text, escape_m, re_hex_16))
+                        {
+                            string number = ((string)escape_m[0]).substr(1);
+
+                            string_token->content.append(UnicodeToUTF8(stol(number, 0, 16)));
+
+                            EraseFront(&text, &current_char, 5);
 
                             continue;
                         }
@@ -242,25 +255,109 @@ vector<Token*> Tokenise(string text)
         {
             EraseFront(&text, &current_char, m.length());
         }
-        else if (regex_search(text, m, re_integer))
-        {
-            Integer *new_integer = new Integer(stoi(m[0]));
-
-            new_integer->start = current_char;
-            new_integer->end = current_char + m.length();
-
-            tokens.push_back(new_integer);
-
-            EraseFront(&text, &current_char, m.length());
-        }
         else if (regex_search(text, m, re_float))
         {
-            Float *new_float = new Float(stof(m[0]));
+            Float *new_float = new Float(stod(m[0]));
 
             new_float->start = current_char;
             new_float->end = current_char + m.length();
 
             tokens.push_back(new_float);
+
+            EraseFront(&text, &current_char, m.length());
+        }
+        else if (regex_search(text, m, re_integer))
+        {
+            int length = m[0].length();
+
+            string string_value = m[0];
+            
+            bool negative = false;
+
+            if (string_value[0] == '-')
+            {
+                negative = true;
+
+                string_value.erase(0, 1);
+            }
+
+            int value = 0;
+
+            if (string_value[0] == '0' && string_value.size() != 0)
+            {
+                if (string_value[1] == 'b')
+                {
+                    string_value.erase(0, 2);
+
+                    try
+                    {
+                        value = stoi(string_value, 0, 2);
+                    }
+                    catch (invalid_argument)
+                    {
+                        Token *t = new Token();
+
+                        t->error = Error {SyntaxError, "Invalid character in binary integer"};
+                        t->start = current_char;
+                        t->end = current_char + length;
+
+                        return vector<Token*> { t };
+                    }
+                }
+                else if (string_value[1] == 'o')
+                {
+                    string_value.erase(0, 2);
+
+                    try
+                    {
+                        value = stoi(string_value, 0, 8);
+                    }
+                    catch (invalid_argument)
+                    {
+                        Token *t = new Token();
+
+                        t->error = Error {SyntaxError, "Invalid character in octal integer"};
+                        t->start = current_char;
+                        t->end = current_char + length;
+
+                        return vector<Token*> { t };
+                    }
+                }
+                else if (string_value[1] == 'x')
+                {
+                    string_value.erase(0, 2);
+
+                    try
+                    {
+                        value = stoi(string_value, 0, 16);
+                    }
+                    catch (invalid_argument)
+                    {
+                        Token *t = new Token();
+
+                        t->error = Error {SyntaxError, "Invalid character in hexadecimal integer"};
+                        t->start = current_char;
+                        t->end = current_char + length;
+
+                        return vector<Token*> { t };
+                    }
+                }
+                else
+                {
+                    value = stoi(string_value);
+                }
+            }
+            else
+            {
+                value = stoi(string_value);
+            }
+
+            Integer *new_integer = new Integer(((negative) ? -1 : 1) * value);
+
+            new_integer->start = current_char;
+            new_integer->end = current_char + m.length();
+
+            tokens.push_back(new_integer);
 
             EraseFront(&text, &current_char, m.length());
         }
@@ -324,11 +421,45 @@ vector<Token*> Tokenise(string text)
         }
         else
         {
-            EraseFront(&text, &current_char, 1);
+            Token *t = new Token();
+
+            t->error = Error {SyntaxError, "Invalid character"};
+            t->start = current_char;
+            t->end = current_char + 1;
+
+            return vector<Token*> { t };
         }
     }
 
     return tokens;
+}
+
+// https://stackoverflow.com/a/19968992: By Mark Ransom https://stackoverflow.com/users/5987/mark-ransom
+string UnicodeToUTF8(unsigned int codepoint)
+{
+    string out;
+
+    if (codepoint <= 0x7f)
+        out.append(1, static_cast<char>(codepoint));
+    else if (codepoint <= 0x7ff)
+    {
+        out.append(1, static_cast<char>(0xc0 | ((codepoint >> 6) & 0x1f)));
+        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
+    }
+    else if (codepoint <= 0xffff)
+    {
+        out.append(1, static_cast<char>(0xe0 | ((codepoint >> 12) & 0x0f)));
+        out.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3f)));
+        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
+    }
+    else
+    {
+        out.append(1, static_cast<char>(0xf0 | ((codepoint >> 18) & 0x07)));
+        out.append(1, static_cast<char>(0x80 | ((codepoint >> 12) & 0x3f)));
+        out.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3f)));
+        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
+    }
+    return out;
 }
 
 void EraseFront(string *text, int *current, int length)
