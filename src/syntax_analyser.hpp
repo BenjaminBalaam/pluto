@@ -13,7 +13,7 @@ Node* GetASTEnd(std::vector<Node*> AST);
 
 bool ShouldReturn(Token* current_token, std::vector<Token*> return_tokens);
 
-void EraseFront(std::vector<Token*> *tokens, int length);
+bool EraseFront(std::vector<Token*> *tokens, int length);
 
 void ThrowError(int start, int end, Error error);
 
