@@ -49,9 +49,10 @@ class Type : public Node
 {
     public:
         std::string name;
+        bool is_array;
         std::vector<Type> content;
 
-        Type(std::string name, std::vector<Type> content);
+        Type(std::string name, bool is_array, std::vector<Type> content);
 
         friend std::ostream& operator<<(std::ostream& os, const Type& data);
 };

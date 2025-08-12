@@ -24,7 +24,7 @@ TEST_CASE("Test Syntax Analyser Literals")
 
 TEST_CASE("Test Syntax Analyser Types")
 {
-    string text = "foo<bar> test<a, b, c> this<is<a, test<>>>";
+    string text = "foo<bar> test<a, b, c> foo[] this<is<a, good[], test<>>>";
 
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
@@ -39,11 +39,17 @@ TEST_CASE("Test Syntax Analyser Types")
     REQUIRE( ((Type*)AST[1])->content[2].name == "c" );
 
     REQUIRE( AST[2]->type == "Type" );
-    REQUIRE( ((Type*)AST[2])->name == "this" );
-    REQUIRE( ((Type*)AST[2])->content[0].name == "is" );
-    REQUIRE( ((Type*)AST[2])->content[0].content[0].name == "a" );
-    REQUIRE( ((Type*)AST[2])->content[0].content[1].name == "test" );
-    REQUIRE( ((Type*)AST[2])->content[0].content[1].content.size() == 0 );
+    REQUIRE( ((Type*)AST[2])->name == "foo" );
+    REQUIRE( ((Type*)AST[2])->is_array );
+
+    REQUIRE( AST[3]->type == "Type" );
+    REQUIRE( ((Type*)AST[3])->name == "this" );
+    REQUIRE( ((Type*)AST[3])->content[0].name == "is" );
+    REQUIRE( ((Type*)AST[3])->content[0].content[0].name == "a" );
+    REQUIRE( ((Type*)AST[3])->content[0].content[1].name == "good" );
+    REQUIRE( ((Type*)AST[3])->content[0].content[1].is_array );
+    REQUIRE( ((Type*)AST[3])->content[0].content[2].name == "test" );
+    REQUIRE( ((Type*)AST[3])->content[0].content[2].content.size() == 0 );
 }
 
 TEST_CASE("Test Syntax Analyser Invalid Types")

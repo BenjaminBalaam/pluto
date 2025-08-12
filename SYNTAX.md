@@ -6,6 +6,12 @@ integer
 float
 string
 
+### Type
+
+name
+name<type, ...>
+name[]
+
 ### Code Block
 
 (type <expansion>name <default>, ...) { STATEMENTS }

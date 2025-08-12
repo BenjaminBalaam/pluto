@@ -75,21 +75,30 @@ ostream& operator<<(ostream& os, const Literal& data)
     return os;
 }
 
-Type::Type(string name, vector<Type> content) : name(name), content(content)
+Type::Type(string name, bool is_array, vector<Type> content) : name(name), is_array(is_array), content(content)
 {
     this->type = "Type";
 }
 
 ostream& operator<<(ostream& os, const Type& data)
 {
-    os << data.name << "<";
-
-    for (Type t : data.content)
+    if (data.is_array)
     {
-        os << t << ", ";
+        return os << data.name << "[]";
+    }
+    else
+    {
+        os << data.name << "<";
+
+        for (Type t : data.content)
+        {
+            os << t << ", ";
+        }
+
+        return os << ">";
     }
 
-    return os << ">";
+    return os;
 }
 
 CodeBlock::CodeBlock(optional<Type> return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)

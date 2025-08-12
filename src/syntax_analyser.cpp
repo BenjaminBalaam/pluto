@@ -98,7 +98,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     }
                     else if (data[0]->type == "GetVariable")
                     {
-                        content.push_back(Type(((GetVariable*)data[0])->name, vector<Type>()));
+                        content.push_back(Type(((GetVariable*)data[0])->name, false, vector<Type>()));
 
                         got_arg = true;
                     }
@@ -148,7 +148,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else
                 {
-                    Type *type = new Type(name, content);
+                    Type *type = new Type(name, false, content);
 
                     type->start = start;
 
@@ -159,9 +159,23 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     EraseFront(&tokens, 1);
                 }
             }
+            else if (!last && tokens.size() > 2 && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "[" && tokens[2]->type == "Bracket" && get<0>(GetTokenValue(tokens[2])) == "]")
+            {
+                string name = ((Identifier*)tokens[0])->name;
+
+                Type *type = new Type(name, true, {});
+
+                type->start = start;
+
+                type->end = tokens[2]->end;
+
+                AST.push_back(type);
+
+                EraseFront(&tokens, 3);
+            }
             else if (!last && AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
-                Type return_type = Type("", vector<Type>());
+                Type return_type = Type("", false, vector<Type>());
 
                 Node *n = GetASTEnd(AST);
 
@@ -173,7 +187,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else if (n->type == "GetVariable")
                 {
-                    return_type = Type(((GetVariable*)n)->name, vector<Type>());
+                    return_type = Type(((GetVariable*)n)->name, false, vector<Type>());
                 }
 
                 Qualifier *qualifier = new Qualifier({});
@@ -214,7 +228,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             }
             else if (!last && AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
             {
-                Type variable_type = Type("", vector<Type>());
+                Type variable_type = Type("", false, vector<Type>());
 
                 Node *n = GetASTEnd(AST);
 
@@ -226,7 +240,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else if (n->type == "GetVariable")
                 {
-                    variable_type = Type(((GetVariable*)n)->name, vector<Type>());
+                    variable_type = Type(((GetVariable*)n)->name, false, vector<Type>());
                 }
 
                 Qualifier *qualifier = new Qualifier({});
@@ -387,7 +401,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 {
                     got_arg = true;
 
-                    Type param_type = Type("", vector<Type>());
+                    Type param_type = Type("", false, vector<Type>());
 
                     if (data[0]->type == "Type")
                     {
@@ -395,7 +409,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     }
                     else if (data[0]->type == "GetVariable")
                     {
-                        param_type = Type(((GetVariable*)data[0])->name, vector<Type>());
+                        param_type = Type(((GetVariable*)data[0])->name, false, vector<Type>());
                     }
 
                     ARGUMENT_EXPANSION param_expansion = None;
@@ -502,7 +516,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else if (data[0]->type == "GetVariable")
                 {
-                    return_type = Type(((GetVariable*)data[0])->name, vector<Type>());
+                    return_type = Type(((GetVariable*)data[0])->name, false, vector<Type>());
                 }
                 else
                 {
