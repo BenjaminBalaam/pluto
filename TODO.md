@@ -2,11 +2,14 @@
 
 ### Small Changes
 
+-   [ ] Decide whether "," can be used in for loops to allow multiple init expressions (for example)
+
 ### Features
 
 -   [ ] Add iteration statements
 -   [ ] Add classes
 
+-   [ ] Add increment and decrement operators
 -   [ ] Bitwise Binary Operators
 -   [ ] Allow multi-assignments in variable assigning
 -   [ ] Implement Templates

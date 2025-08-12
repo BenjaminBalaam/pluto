@@ -67,7 +67,7 @@ Precendence of Operations
 
 ### For Statements
 
-`for (declaration; condition; expression) { STATEMENTS }`
+`for (declaration; condition; iteration) { STATEMENTS }`
 `for (declaration : iterator) { STATEMENTS }`
 
 ### While Statement

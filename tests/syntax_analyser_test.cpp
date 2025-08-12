@@ -938,3 +938,60 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     REQUIRE( ((SwitchStatement*)AST[2])->case_code_blocks[1]->content.size() == 0 );
     REQUIRE( ((SwitchStatement*)AST[2])->default_code_block->content.size() == 0 );
 }
+
+TEST_CASE("Test Syntax Analyser For Loop")
+{
+    string text = "for (;;) {} for (int i = 0;;) {} for (int i = 0; i < length;) {} for (int i = 0; i < length; i += 1) {}";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "ForLoop" );
+    REQUIRE( ((ForLoop*)AST[0])->declaration_expression == NULL );
+    REQUIRE( ((ForLoop*)AST[0])->condition_expression == NULL );
+    REQUIRE( ((ForLoop*)AST[0])->iteration_expression == NULL );
+    REQUIRE( ((ForLoop*)AST[0])->for_code_block->content.size() == 0 );
+
+    REQUIRE( AST[1]->type == "ForLoop" );
+    REQUIRE( ((ForLoop*)AST[1])->declaration_expression->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->name == "i" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->value->type == "Literal" );
+    REQUIRE( ((Literal*)((AssignVariable*)((ForLoop*)AST[1])->declaration_expression)->value)->l_integer == 0 );
+    REQUIRE( ((ForLoop*)AST[1])->condition_expression == NULL );
+    REQUIRE( ((ForLoop*)AST[1])->iteration_expression == NULL );
+    REQUIRE( ((ForLoop*)AST[1])->for_code_block->content.size() == 0 );
+
+    REQUIRE( AST[2]->type == "ForLoop" );
+    REQUIRE( ((ForLoop*)AST[2])->declaration_expression->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->name == "i" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->value->type == "Literal" );
+    REQUIRE( ((Literal*)((AssignVariable*)((ForLoop*)AST[2])->declaration_expression)->value)->l_integer == 0 );
+    REQUIRE( ((ForLoop*)AST[2])->condition_expression->type == "Operation" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[2])->condition_expression)->operator_string == "<" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[2])->condition_expression)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((ForLoop*)AST[2])->condition_expression)->left)->name == "i" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[2])->condition_expression)->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((ForLoop*)AST[2])->condition_expression)->right)->name == "length" );
+    REQUIRE( ((ForLoop*)AST[2])->iteration_expression == NULL );
+    REQUIRE( ((ForLoop*)AST[2])->for_code_block->content.size() == 0 );
+
+    REQUIRE( AST[3]->type == "ForLoop" );
+    REQUIRE( ((ForLoop*)AST[3])->declaration_expression->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->name == "i" );
+    REQUIRE( ((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->value->type == "Literal" );
+    REQUIRE( ((Literal*)((AssignVariable*)((ForLoop*)AST[3])->declaration_expression)->value)->l_integer == 0 );
+    REQUIRE( ((ForLoop*)AST[3])->condition_expression->type == "Operation" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[3])->condition_expression)->operator_string == "<" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[3])->condition_expression)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((ForLoop*)AST[3])->condition_expression)->left)->name == "i" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[3])->condition_expression)->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((ForLoop*)AST[3])->condition_expression)->right)->name == "length" );
+    REQUIRE( ((ForLoop*)AST[3])->iteration_expression->type == "Operation" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[3])->iteration_expression)->operator_string == "+=" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[3])->iteration_expression)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((ForLoop*)AST[3])->iteration_expression)->left)->name == "i" );
+    REQUIRE( ((Operation*)((ForLoop*)AST[3])->iteration_expression)->right->type == "Literal" );
+    REQUIRE( ((Literal*)((Operation*)((ForLoop*)AST[3])->iteration_expression)->right)->l_integer == 1 );
+    REQUIRE( ((ForLoop*)AST[3])->for_code_block->content.size() == 0 );
+}

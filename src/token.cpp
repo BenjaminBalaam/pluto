@@ -7,7 +7,7 @@
 
 using namespace std;
 
-vector<string> Keywords = { "public", "static", "const", "if", "else", "switch", "case", "default" };
+vector<string> Keywords = { "public", "static", "const", "if", "else", "switch", "case", "default", "for", "while" };
 
 ostream &operator<<(ostream &os, const Token &t)
 {

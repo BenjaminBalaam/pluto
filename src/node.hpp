@@ -164,6 +164,19 @@ class SwitchStatement : public Node
         friend std::ostream &operator<<(std::ostream &os, const SwitchStatement &data);
 };
 
+class ForLoop : public Node
+{
+    public:
+        Node *declaration_expression;
+        Node *condition_expression;
+        Node *iteration_expression;
+        CodeBlock *for_code_block;
+
+        ForLoop(Node *declaration_expression, Node*condition_expression, Node *iteration_expression, CodeBlock *for_code_block);
+
+        friend std::ostream &operator<<(std::ostream &os, const ForLoop &data);
+};
+
 class StatementEnd : public Node
 {
     public:

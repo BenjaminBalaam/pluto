@@ -651,8 +651,6 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 node->end = tokens[0]->end;
 
                 AST.push_back(node);
-
-                EraseFront(&tokens, 1);
             }
             else if (!last && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
@@ -1127,6 +1125,96 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 AST.push_back(switch_statement);
 
                 EraseFront(&tokens, 1);
+            }
+            else if (get<0>(GetTokenValue(tokens[0])) == "for")
+            {
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing starting ("});
+                }
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket(")") }, get<0>(return_flags)), false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                }
+
+                vector<Node*> expressions = {};
+
+                Node *current_expression = NULL;
+
+                for (int i = 0; i < data.size(); i++)
+                {
+                    if (data[i]->type != "StatementEnd")
+                    {
+                        if (current_expression != NULL)
+                        {
+                            ThrowError(start, data[i]->end, Error {SyntaxError, "Missing ;"});
+                        }
+
+                        current_expression = data[i];
+                    }
+                    else
+                    {
+                        expressions.push_back(current_expression);
+
+                        current_expression = NULL;
+                    }
+                }
+
+                if (current_expression != NULL || (data[data.size() - 1]->type == "StatementEnd" && expressions.size() == 2))
+                {
+                    expressions.push_back(current_expression);
+                }
+
+                if (expressions.size() < 3)
+                {
+                    ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression(s)"});
+                }
+
+                if (expressions.size() > 3)
+                {
+                    ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Too many expressions"});
+                }
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                if (data.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (data[0]->type != "CodeBlock")
+                {
+                    ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in for loop"});
+                }
+
+                CodeBlock *for_code_block = (CodeBlock*)data[0];
+
+                ForLoop *for_loop = new ForLoop(expressions[0], expressions[1], expressions[2], for_code_block);
+
+                for_loop->start = start;
+                for_loop->end = for_code_block->end;
+
+                AST.push_back(for_loop);
             }
         }
         else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";")

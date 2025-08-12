@@ -62,6 +62,10 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (SwitchStatement&)n;
     }
+    else if (n.type == "ForLoop")
+    {
+        return os << (ForLoop&)n;
+    }
     else if (n.type == "StatementEnd")
     {
         return os << (StatementEnd&)n;
@@ -235,7 +239,7 @@ ostream &operator<<(ostream &os, const AssignVariable &data)
     }
     else
     {
-        return os << *data.qualifier << data.variable_type << " " << data.name << " = " << *data.value << ";";
+        return os << *data.qualifier << data.variable_type << " " << data.name << " = " << *data.value;
     }
 }
 
@@ -298,6 +302,37 @@ ostream &operator<<(ostream &os, const SwitchStatement &data)
     }
 
     return os;
+}
+
+ForLoop::ForLoop(Node *declaration_expression, Node*condition_expression, Node *iteration_expression, CodeBlock *for_code_block) : declaration_expression(declaration_expression), condition_expression(condition_expression), iteration_expression(iteration_expression), for_code_block(for_code_block)
+{
+    this->type = "ForLoop";
+}
+
+ostream &operator<<(ostream &os, const ForLoop &data)
+{
+    os << "for (";
+
+    if (data.declaration_expression != NULL)
+    {
+        os << *data.declaration_expression;
+    }
+
+    os << "; ";
+
+    if (data.condition_expression != NULL)
+    {
+        os << *data.condition_expression;
+    }
+
+    os << "; ";
+
+    if (data.iteration_expression != NULL)
+    {
+        os << *data.iteration_expression;
+    }
+
+    return os << ") " << *data.for_code_block;;
 }
 
 StatementEnd::StatementEnd()
