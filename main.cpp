@@ -23,7 +23,16 @@ int main(int argc, char *argv[])
 
     for (Token* token : tokens)
     {
-        cout << *token << "\n";
+        if (!token->error)
+        {
+            cout << *token << "\n";
+        }
+        else
+        {
+            cout << "\033[1;31m" << token->error->type << ": " << token->error->text << "\033[m\n";
+
+            return 0;
+        }
 
         delete token;
     }

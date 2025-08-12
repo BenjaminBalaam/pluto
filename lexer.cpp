@@ -17,6 +17,9 @@ vector<Token*> Tokenise(string text)
     regex re_integer = regex("^-?(0[box])?[0-9]+");
     regex re_float = regex("^[0-9]+-?[0-9]+");
     regex re_identifier = regex("^[a-zA-Z_][a-zA-Z0-9_]*");
+    regex re_control = regex("^[.,;]");
+    regex re_bracket = regex("^[\\(\\)\\[\\]\\{\\}]");
+    regex re_operator = regex("^([=!<>]=)|[\\+\\-\\*/%\\^=<>!&\\|]");
 
     smatch m;
 
@@ -36,7 +39,7 @@ vector<Token*> Tokenise(string text)
             {
                 string_token->error = Error {SyntaxError, "Unterminated string literal"};
 
-                break;
+                return vector<Token*> { string_token };
             }
             else if (text[0] == string_start && !escaping_string)
             {
@@ -45,6 +48,8 @@ vector<Token*> Tokenise(string text)
                 string_token->end = current_char;
                 
                 tokens.push_back(string_token);
+
+                EraseFront(&text, &current_char, 1);
             }
             else if (escaping_string)
             {
@@ -200,6 +205,39 @@ vector<Token*> Tokenise(string text)
 
                 EraseFront(&text, &current_char, m.length());
             }
+        }
+        else if (regex_search(text, m, re_control))
+        {
+            Control *new_control = new Control(m[0]);
+
+            new_control->start = current_char;
+            new_control->end = current_char + m.length();
+
+            tokens.push_back(new_control);
+
+            EraseFront(&text, &current_char, m.length());
+        }
+        else if (regex_search(text, m, re_bracket))
+        {
+            Bracket *new_bracket = new Bracket(m[0]);
+
+            new_bracket->start = current_char;
+            new_bracket->end = current_char + m.length();
+
+            tokens.push_back(new_bracket);
+
+            EraseFront(&text, &current_char, m.length());
+        }
+        else if (regex_search(text, m, re_operator))
+        {
+            Operator *new_operator = new Operator(m[0]);
+
+            new_operator->start = current_char;
+            new_operator->end = current_char + m.length();
+
+            tokens.push_back(new_operator);
+
+            EraseFront(&text, &current_char, m.length());
         }
         else
         {

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <optional>
 
 #include "error.hpp"
 
@@ -12,7 +13,7 @@ extern std::vector<std::string> Keywords;
 class Token
 {
     public:
-        Error error;
+        std::optional<Error> error;
 
         std::string type;
         int start;
@@ -69,6 +70,36 @@ class Keyword : public Token
         Keyword(std::string name);
 
         friend std::ostream& operator<<(std::ostream& os, const Keyword& k);
+};
+
+class Control : public Token
+{
+    public:
+        std::string value;
+
+        Control(std::string value);
+
+        friend std::ostream& operator<<(std::ostream& os, const Control& c);
+};
+
+class Bracket : public Token
+{
+    public:
+        std::string value;
+
+        Bracket(std::string value);
+
+        friend std::ostream& operator<<(std::ostream& os, const Bracket& b);
+};
+
+class Operator : public Token
+{
+    public:
+        std::string value;
+
+        Operator(std::string value);
+
+        friend std::ostream& operator<<(std::ostream& os, const Operator& o);
 };
 
 #endif
