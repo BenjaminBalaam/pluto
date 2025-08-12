@@ -1,0 +1,1 @@
+-   [ ] Make float type use C++ double
