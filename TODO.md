@@ -4,21 +4,19 @@
 
 ### Features
 
+-   [ ] Allow objects to be created with or without "new" (and update semantics to include this)
 -   [ ] Add increment and decrement operators
 -   [ ] Add tertiary operator
 -   [ ] Bitwise Binary Operators
 -   [ ] Allow multi-assignments in variable assigning
 -   [ ] Allow entering mutliple expressions into a 1 expression space with tuples
 -   [ ] Implement Templates
--   [ ] Implement Interfaces (maybe rename)
+-   [ ] Implement Interfaces
 -   [ ] Add a smart pointer system
 
-#### Semantics Analyser
+#### Code Generation
 
--   [ ] Check and remove semicolons
 -   [ ] Check all types match
--   [ ] Check all statements are valid (not qualifiers on their own etc)
--   [ ] statements in right context (returns in functions etc)
 
 ### Future Reminders
 

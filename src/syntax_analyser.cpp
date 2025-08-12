@@ -628,6 +628,13 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     node->end = code_block->end;
 
                     AST.push_back(node);
+
+                    StatementEnd *statement_end = new StatementEnd();
+
+                    statement_end->end = code_block->end - 1;
+                    statement_end->start = code_block->end;
+
+                    AST.push_back(statement_end);
             }
             else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
             {
@@ -1018,104 +1025,110 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 int end = if_code_block->end;
 
-                while (true)
+                if (tokens.size() != 0)
                 {
-                    if (tokens.size() < 2 || tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else" || tokens[1]->type != "Keyword" || ((Keyword*)tokens[1])->name != "if")
+
+                    while (true)
                     {
-                        break;
+                        if (tokens.size() < 2 || tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else" || tokens[1]->type != "Keyword" || ((Keyword*)tokens[1])->name != "if")
+                        {
+                            break;
+                        }
+
+                        int else_if_start = tokens[0]->start;
+
+                        if (EraseFront(&tokens, 2))
+                        {
+                            ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        }
+
+                        if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
+                        {
+                            ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing starting ("});
+                        }
+
+                        if (EraseFront(&tokens, 1))
+                        {
+                            ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        }
+
+                        tie(data, tokens) = AnalyseSyntax(tokens, { { { new Bracket(")"), false } }, false });
+
+                        if (tokens.size() == 0)
+                        {
+                            ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing ending )"});
+                        }
+
+                        if (data.size() == 0)
+                        {
+                            ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression"});
+                        }
+
+                        Node *else_if_expression = data[0];
+
+                        if (EraseFront(&tokens, 1))
+                        {
+                            ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        }
+
+                        tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                        if (data.size() == 0)
+                        {
+                            ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        }
+
+                        if (data[0]->type != "CodeBlock")
+                        {
+                            ThrowError(else_if_start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
+                        }
+
+                        CodeBlock *else_if_code_block = (CodeBlock*)data[0];
+
+                        if_statement->else_if_expressions.push_back(else_if_expression);
+                        if_statement->else_if_code_blocks.push_back(else_if_code_block);
+
+                        end = else_if_code_block->end;
                     }
 
-                    int else_if_start = tokens[0]->start;
-
-                    if (EraseFront(&tokens, 2))
+                    if (tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else")
                     {
-                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        if_statement->start = start;
+                        if_statement->end = end;
+
+                        AST.push_back(if_statement);
+
+                        continue;
                     }
 
-                    if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
-                    {
-                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing starting ("});
-                    }
+                    int else_start = tokens[0]->start;
 
                     if (EraseFront(&tokens, 1))
                     {
-                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
-                    }
-
-                    tie(data, tokens) = AnalyseSyntax(tokens, { { { new Bracket(")"), false } }, false });
-
-                    if (tokens.size() == 0)
-                    {
-                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing ending )"});
-                    }
-
-                    if (data.size() == 0)
-                    {
-                        ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression"});
-                    }
-
-                    Node *else_if_expression = data[0];
-
-                    if (EraseFront(&tokens, 1))
-                    {
-                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        ThrowError(else_start, file_end, Error {SyntaxError, "Missing end of statement"});
                     }
 
                     tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
 
                     if (data.size() == 0)
                     {
-                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                        ThrowError(else_start, file_end, Error {SyntaxError, "Missing end of statement"});
                     }
 
                     if (data[0]->type != "CodeBlock")
                     {
-                        ThrowError(else_if_start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
+                        ThrowError(else_start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
                     }
 
-                    CodeBlock *else_if_code_block = (CodeBlock*)data[0];
+                    CodeBlock *else_code_block = (CodeBlock*)data[0];
 
-                    if_statement->else_if_expressions.push_back(else_if_expression);
-                    if_statement->else_if_code_blocks.push_back(else_if_code_block);
+                    if_statement->else_code_block = else_code_block;
 
-                    end = else_if_code_block->end;
+                    end = else_code_block->end;
                 }
-
-                if (tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else")
-                {
-                    if_statement->start = start;
-                    if_statement->end = end;
-
-                    AST.push_back(if_statement);
-
-                    continue;
-                }
-
-                int else_start = tokens[0]->start;
-
-                if (EraseFront(&tokens, 1))
-                {
-                    ThrowError(else_start, file_end, Error {SyntaxError, "Missing end of statement"});
-                }
-
-                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
-
-                if (data.size() == 0)
-                {
-                    ThrowError(else_start, file_end, Error {SyntaxError, "Missing end of statement"});
-                }
-
-                if (data[0]->type != "CodeBlock")
-                {
-                    ThrowError(else_start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
-                }
-
-                CodeBlock *else_code_block = (CodeBlock*)data[0];
-
-                if_statement->else_code_block = else_code_block;
 
                 if_statement->start = start;
-                if_statement->end = else_code_block->end;
+                if_statement->end = end;
 
                 AST.push_back(if_statement);
             }

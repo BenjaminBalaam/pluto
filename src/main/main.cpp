@@ -7,6 +7,7 @@
 #include "main.hpp"
 #include "../lexer.hpp"
 #include "../syntax_analyser.hpp"
+#include "../semantics_analyser.hpp"
 #include "../token.hpp"
 #include "../error.hpp"
 
@@ -59,13 +60,21 @@ int main(int argc, char *argv[])
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
 
+    AST = AnalyseSemantics(AST, {});
+
+    try
+    {
+        AST = get<0>(AnalyseSyntax(tokens));
+    }
+    catch (Node *node)
+    {
+        return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
+    }
+
     for (Node *node : AST)
     {
-        if (node->type != "StatementEnd")
-        {
-            cout << *node << "\n";
-        }
-    }
+        cout << *node << "\n";
+    } 
 
     return 0;
 }

@@ -31,6 +31,8 @@ class Node
 
         Node();
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const Node &n);
 };
 
@@ -42,6 +44,8 @@ class Type : public Node
         std::vector<Type> content;
 
         Type(std::string name, bool is_array, std::vector<Type> content);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const Type &data);
 };
@@ -79,6 +83,8 @@ class Literal : public Node
 
         Literal();
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const Literal &data);
 };
 
@@ -90,6 +96,8 @@ class CodeBlock : public Node
         std::vector<Node*> content;
 
         CodeBlock(std::optional<Type> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const CodeBlock &data);
 };
@@ -103,6 +111,8 @@ class Operation : public Node
 
         Operation(std::string operator_string, Node *left, Node *right);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const Operation &data);
 };
 
@@ -112,6 +122,8 @@ class GetVariable : public Node
         std::string name;
 
         GetVariable(std::string name);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const GetVariable &data);
 };
@@ -126,6 +138,8 @@ class DeclareVariable : public Node
 
         DeclareVariable(Qualifier *qualifier, Type variable_type, std::string name, Node *value);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const DeclareVariable &data);
 };
 
@@ -136,6 +150,8 @@ class FunctionCall : public Node
         std::vector<Node*> arguments;
 
         FunctionCall(std::string name, std::vector<Node*> arguments);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const FunctionCall &data);
 };
@@ -149,6 +165,8 @@ class ClassDefinition : public Node
         
         ClassDefinition(std::string name, std::string interface, std::vector<Node*> body);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const ClassDefinition &data);
 };
 
@@ -159,6 +177,8 @@ class MemberAccess : public Node
         Node *statement;
 
         MemberAccess(std::string name, Node *statement);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const MemberAccess &data);
 };
@@ -174,6 +194,8 @@ class IfStatement : public Node
 
         IfStatement(Node *if_expression, CodeBlock *if_code_block, std::vector<Node*> else_if_expressions, std::vector<CodeBlock*> else_if_code_blocks, CodeBlock *else_code_block);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const IfStatement &data);
 };
 
@@ -186,6 +208,8 @@ class SwitchStatement : public Node
         CodeBlock *default_code_block;
 
         SwitchStatement(Node *switch_expression, std::vector<Node*> case_expressions, std::vector<CodeBlock*> case_code_blocks, CodeBlock *default_code_block);
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const SwitchStatement &data);
 };
@@ -200,6 +224,8 @@ class ForLoop : public Node
 
         ForLoop(Node *declaration_expression, Node *condition_expression, Node *iteration_expression, CodeBlock *for_code_block);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const ForLoop &data);
 };
 
@@ -212,6 +238,8 @@ class ForEachLoop : public Node
 
         ForEachLoop(Node *declaration_expression, Node *iteration_expression, CodeBlock *for_code_block);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const ForEachLoop &data);
 };
 
@@ -223,6 +251,8 @@ class WhileLoop : public Node
 
         WhileLoop(Node *condition, CodeBlock *while_code_block);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const WhileLoop &data);
 };
 
@@ -233,6 +263,8 @@ class Return : public Node
 
         Return(Node *expression);
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const Return &data);
 };
 
@@ -241,6 +273,8 @@ class Break : public Node
     public:
         Break();
 
+        void CheckSemantics(std::vector<Node*> call_stack);
+
         friend std::ostream &operator<<(std::ostream &os, const Break &data);
 };
 
@@ -248,6 +282,8 @@ class Continue : public Node
 {
     public:
         Continue();
+
+        void CheckSemantics(std::vector<Node*> call_stack);
 
         friend std::ostream &operator<<(std::ostream &os, const Continue &data);
 };

@@ -6,6 +6,7 @@
 
 #include "node.hpp"
 #include "error.hpp"
+#include "semantics_analyser.hpp"
 
 using namespace std;
 
@@ -25,6 +26,58 @@ void ThrowError(int start, int end, Error error)
 Node::Node()
 {
     this->type = "";
+}
+
+void Node::CheckSemantics(vector<Node*> call_stack)
+{
+    if (this->type == "CodeBlock")
+    {
+        ((CodeBlock*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "Operation")
+    {
+        ((Operation*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "DeclareVariable")
+    {
+        ((DeclareVariable*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "FunctionCall")
+    {
+        ((FunctionCall*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "ClassDefinition")
+    {
+        ((ClassDefinition*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "MemberAccess")
+    {
+        ((MemberAccess*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "IfStatement")
+    {
+        ((IfStatement*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "SwitchStatement")
+    {
+        ((SwitchStatement*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "ForLoop")
+    {
+        ((ForLoop*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "ForEachLoop")
+    {
+        ((ForEachLoop*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "WhileLoop")
+    {
+        ((WhileLoop*)this)->CheckSemantics(call_stack);
+    }
+    else if (this->type == "Return")
+    {
+        ((Return*)this)->CheckSemantics(call_stack);
+    }
 }
 
 ostream &operator<<(ostream &os, const Node &n)
@@ -214,6 +267,17 @@ CodeBlock::CodeBlock(optional<Type> return_type, vector<Parameter> parameters, v
     this->type = "CodeBlock";
 }
 
+void CodeBlock::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    for (Node *statement : this->content)
+    {
+        CheckStatement(statement, new_call_stack);
+    }
+}
+
 ostream &operator<<(ostream &os, const CodeBlock &data)
 {
     if (data.return_type)
@@ -247,6 +311,12 @@ Operation::Operation(string operator_string, Node *left, Node *right) : operator
     this->type = "Operation";
 }
 
+void Operation::CheckSemantics(vector<Node*> call_stack)
+{
+    CheckExpression(this->left, call_stack);
+    CheckExpression(this->right, call_stack);
+}
+
 ostream &operator<<(ostream &os, const Operation &data)
 {
     if (data.left == NULL)
@@ -274,6 +344,11 @@ DeclareVariable::DeclareVariable(Qualifier *qualifier, Type variable_type, strin
     this->type = "DeclareVariable";
 }
 
+void DeclareVariable::CheckSemantics(vector<Node*> call_stack)
+{
+    CheckExpression(value, call_stack);
+}
+
 ostream &operator<<(ostream &os, const DeclareVariable &data)
 {
     if (data.value == NULL)
@@ -291,6 +366,14 @@ FunctionCall::FunctionCall(string name, vector<Node*> arguments) : name(name), a
     this->type = "FunctionCall";
 }
 
+void FunctionCall::CheckSemantics(vector<Node*> call_stack)
+{
+    for (Node *expression : this->arguments)
+    {
+        CheckExpression(expression, call_stack);
+    }
+}
+
 ostream &operator<<(ostream &os, const FunctionCall &data)
 {
     os << data.name << "(";
@@ -306,6 +389,17 @@ ostream &operator<<(ostream &os, const FunctionCall &data)
 ClassDefinition::ClassDefinition(string name, string interface, vector<Node*> body) : name(name), interface(interface), body(body)
 {
     this->type = "ClassDefinition";
+}
+
+void ClassDefinition::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    for (Node *statement : this->body)
+    {
+        CheckStatement(statement, new_call_stack);
+    }
 }
 
 ostream &operator<<(ostream &os, const ClassDefinition &data)
@@ -334,6 +428,11 @@ MemberAccess::MemberAccess(string name, Node *statement) : name(name), statement
     this->type = "MemberAccess";
 }
 
+void MemberAccess::CheckSemantics(vector<Node*> call_stack)
+{
+    CheckStatement(this->statement, call_stack);
+}
+
 ostream &operator<<(ostream &os, const MemberAccess &data)
 {
     return os << data.name << "." << *data.statement;
@@ -342,6 +441,28 @@ ostream &operator<<(ostream &os, const MemberAccess &data)
 IfStatement::IfStatement(Node *if_expression, CodeBlock *if_code_block, vector<Node*> else_if_expressions, vector<CodeBlock*> else_if_code_blocks, CodeBlock *else_code_block) : if_expression(if_expression), if_code_block(if_code_block), else_if_expressions(else_if_expressions), else_if_code_blocks(else_if_code_blocks), else_code_block(else_code_block)
 {
     this->type = "IfStatement";
+}
+
+void IfStatement::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    CheckExpression(this->if_expression, call_stack);
+
+    CheckStatement(this->if_code_block, new_call_stack);
+
+    for (Node *expression : this->else_if_expressions)
+    {
+        CheckExpression(expression, call_stack);
+    }
+
+    for (Node *expression : this->else_if_code_blocks)
+    {
+        CheckExpression(expression, new_call_stack);
+    }
+
+    CheckExpression(this->else_code_block, new_call_stack);
 }
 
 ostream &operator<<(ostream &os, const IfStatement &data)
@@ -366,6 +487,26 @@ SwitchStatement::SwitchStatement(Node *switch_expression, vector<Node*> case_exp
     this->type = "SwitchStatement";
 }
 
+void SwitchStatement::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    CheckExpression(this->switch_expression, call_stack);
+
+    for (Node *expression : this->case_expressions)
+    {
+        CheckExpression(expression, new_call_stack);
+    }
+
+    for (Node *expression : this->case_code_blocks)
+    {
+        CheckExpression(expression, new_call_stack);
+    }
+
+    CheckExpression(this->default_code_block, new_call_stack);
+}
+
 ostream &operator<<(ostream &os, const SwitchStatement &data)
 {
     os << "switch (" << *data.switch_expression << ") {";
@@ -386,6 +527,18 @@ ostream &operator<<(ostream &os, const SwitchStatement &data)
 ForLoop::ForLoop(Node *declaration_expression, Node*condition_expression, Node *iteration_expression, CodeBlock *for_code_block) : declaration_expression(declaration_expression), condition_expression(condition_expression), iteration_expression(iteration_expression), for_code_block(for_code_block)
 {
     this->type = "ForLoop";
+}
+
+void ForLoop::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    CheckExpression(this->declaration_expression, call_stack);
+    CheckExpression(this->condition_expression, call_stack);
+    CheckExpression(this->iteration_expression, call_stack);
+
+    CheckExpression(this->for_code_block, new_call_stack);
 }
 
 ostream &operator<<(ostream &os, const ForLoop &data)
@@ -419,6 +572,17 @@ ForEachLoop::ForEachLoop(Node *declaration_expression, Node *iteration_expressio
     this->type = "ForEachLoop";
 }
 
+void ForEachLoop::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    CheckExpression(this->declaration_expression, call_stack);
+    CheckExpression(this->iteration_expression, call_stack);
+
+    CheckExpression(this->for_code_block, new_call_stack);
+}
+
 ostream &operator<<(ostream &os, const ForEachLoop &data)
 {
     return os << "for (" << *data.declaration_expression << " : " << *data.iteration_expression << ") " << *data.for_code_block;
@@ -429,6 +593,16 @@ WhileLoop::WhileLoop(Node *condition, CodeBlock *while_code_block) : condition(c
     this->type = "WhileLoop";
 }
 
+void WhileLoop::CheckSemantics(vector<Node*> call_stack)
+{
+    vector<Node*> new_call_stack = vector<Node*>(call_stack);
+    new_call_stack.push_back(this);
+
+    CheckExpression(this->condition, call_stack);
+
+    CheckExpression(this->while_code_block, new_call_stack);
+}
+
 ostream &operator<<(ostream &os, const WhileLoop &data)
 {
     return os << "while (" << *data.condition << ") " << *data.while_code_block;
@@ -437,6 +611,11 @@ ostream &operator<<(ostream &os, const WhileLoop &data)
 Return::Return(Node *expression) : expression(expression)
 {
     this->type = "Return";
+}
+
+void Return::CheckSemantics(vector<Node*> call_stack)
+{
+    CheckExpression(this->expression, call_stack);
 }
 
 ostream &operator<<(ostream &os, const Return &data)

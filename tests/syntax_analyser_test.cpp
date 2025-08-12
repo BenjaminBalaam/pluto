@@ -43,6 +43,8 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -55,6 +57,8 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -67,6 +71,8 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -169,6 +175,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -181,6 +189,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -193,6 +203,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -205,6 +217,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -217,6 +231,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -229,6 +245,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -241,6 +259,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -253,6 +273,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -265,6 +287,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -277,6 +301,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -289,6 +315,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -301,6 +329,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -313,6 +343,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -325,6 +357,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -337,6 +371,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -349,6 +385,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -361,6 +399,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -373,6 +413,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -385,6 +427,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -397,6 +441,8 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -531,6 +577,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -543,6 +591,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -555,6 +605,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -567,6 +619,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -579,6 +633,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -591,6 +647,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -603,6 +661,8 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -667,6 +727,8 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -679,6 +741,8 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -691,6 +755,8 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -725,6 +791,8 @@ TEST_CASE("Test Syntax Analyser Function Call")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -737,6 +805,8 @@ TEST_CASE("Test Syntax Analyser Function Call")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -749,6 +819,8 @@ TEST_CASE("Test Syntax Analyser Function Call")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -761,6 +833,8 @@ TEST_CASE("Test Syntax Analyser Function Call")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -892,6 +966,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -904,6 +980,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -916,6 +994,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -928,6 +1008,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -940,6 +1022,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -952,6 +1036,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -964,6 +1050,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -976,6 +1064,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -988,6 +1078,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1000,6 +1092,8 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1036,6 +1130,8 @@ TEST_CASE("Test Syntax Analyser Member Access")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1048,6 +1144,8 @@ TEST_CASE("Test Syntax Analyser Member Access")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1060,6 +1158,8 @@ TEST_CASE("Test Syntax Analyser Member Access")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1072,6 +1172,8 @@ TEST_CASE("Test Syntax Analyser Member Access")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1079,11 +1181,13 @@ TEST_CASE("Test Syntax Analyser Member Access")
         REQUIRE( node->error->text == "Missing member access" );
     }
 
-    text = "foo.0 0;";
+    text = "foo.test 0;";
 
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1096,6 +1200,8 @@ TEST_CASE("Test Syntax Analyser Member Access")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1106,8 +1212,19 @@ TEST_CASE("Test Syntax Analyser Member Access")
 
 TEST_CASE("Test Syntax Analyser If Statements")
 {
-    string text = "if (exp) {} if (exp) {} else {} if (exp1) {} else if (exp2) {} if (exp1) {} else if (exp2) {} else if (exp3) {} else {}";
+    string text = "if (exp) {}";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "IfStatement" );
+    REQUIRE( ((IfStatement*)AST[0])->if_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[0])->if_expression)->name == "exp" );
+    REQUIRE( ((IfStatement*)AST[0])->if_code_block->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_if_expressions.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_if_code_blocks.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_code_block == NULL );
+
+    text = "if (exp) {} if (exp) {} else {} if (exp1) {} else if (exp2) {} if (exp1) {} else if (exp2) {} else if (exp3) {} else {}";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "IfStatement" );
     REQUIRE( ((IfStatement*)AST[0])->if_expression->type == "GetVariable" );
@@ -1155,6 +1272,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1167,6 +1286,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1179,6 +1300,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1191,6 +1314,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1203,6 +1328,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1215,6 +1342,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1227,6 +1356,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1239,6 +1370,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1251,6 +1384,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1263,6 +1398,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1275,6 +1412,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1287,6 +1426,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1299,6 +1440,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1311,6 +1454,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1323,6 +1468,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1335,6 +1482,8 @@ TEST_CASE("Test Syntax Analyser If Statements")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1383,6 +1532,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1395,6 +1546,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1407,6 +1560,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1419,6 +1574,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1431,6 +1588,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1443,6 +1602,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1455,6 +1616,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1467,6 +1630,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1479,6 +1644,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1491,6 +1658,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1503,6 +1672,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1515,6 +1686,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1527,6 +1700,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1539,6 +1714,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1551,6 +1728,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1563,6 +1742,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1575,6 +1756,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1587,6 +1770,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1599,6 +1784,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1611,6 +1798,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
@@ -1623,6 +1812,8 @@ TEST_CASE("Test Syntax Analyser Switch Statement")
     try
     {
         AnalyseSyntax(Tokenise(text));
+
+        FAIL();
     }
     catch (Node *node)
     {
