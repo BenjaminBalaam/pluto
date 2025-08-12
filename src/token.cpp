@@ -96,7 +96,7 @@ ostream& operator<<(ostream& os, const Integer& i)
     return os << i.number;
 }
 
-Float::Float(float number) : number(number)
+Float::Float(double number) : number(number)
 {
     this->type = "Float";
 }
@@ -166,40 +166,40 @@ ostream& operator<<(ostream& os, const Operator& o)
     return os << o.value;
 }
 
-tuple<string, int, float> GetTokenValue(Token* token)
+tuple<string, int, double> GetTokenValue(Token* token)
 {
     if (token->type == "Integer")
     {
-        return tuple<string, int, float> { "", ((Integer*)token)->number, 0.0f };
+        return tuple<string, int, double> { "", ((Integer*)token)->number, 0.0f };
     }
     else if (token->type == "Float")
     {
-        return tuple<string, int, float> { "", 0.0f, ((Float*)token)->number };
+        return tuple<string, int, double> { "", 0.0f, ((Float*)token)->number };
     }
     else if (token->type == "String")
     {
-        return tuple<string, int, float> { ((String*)token)->content, 0, 0.0f };
+        return tuple<string, int, double> { ((String*)token)->content, 0, 0.0f };
     }
     else if (token->type == "Identifier")
     {
-        return tuple<string, int, float> { ((Identifier*)token)->name, 0, 0.0f };
+        return tuple<string, int, double> { ((Identifier*)token)->name, 0, 0.0f };
     }
     else if (token->type == "Keyword")
     {
-        return tuple<string, int, float> { ((Keyword*)token)->name, 0, 0.0f };
+        return tuple<string, int, double> { ((Keyword*)token)->name, 0, 0.0f };
     }
     else if (token->type == "Control")
     {
-        return tuple<string, int, float> { ((Control*)token)->value, 0, 0.0f };
+        return tuple<string, int, double> { ((Control*)token)->value, 0, 0.0f };
     }
     else if (token->type == "Bracket")
     {
-        return tuple<string, int, float> { ((Bracket*)token)->value, 0, 0.0f };
+        return tuple<string, int, double> { ((Bracket*)token)->value, 0, 0.0f };
     }
     else if (token->type == "Operator")
     {
-        return tuple<string, int, float> { ((Operator*)token)->value, 0, 0.0f };
+        return tuple<string, int, double> { ((Operator*)token)->value, 0, 0.0f };
     }
 
-    return tuple<string, int, float> { "", 0, 0.0f };
+    return tuple<string, int, double> { "", 0, 0.0f };
 }

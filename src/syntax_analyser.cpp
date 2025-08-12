@@ -28,7 +28,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             l->start = tokens[0]->start;
             l->end = tokens[0]->end;
 
-            tuple<string, int, float> vals = GetTokenValue(tokens[0]);
+            tuple<string, int, double> vals = GetTokenValue(tokens[0]);
 
             if (tokens[0]->type == "Integer")
             {
@@ -266,13 +266,6 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 AST.push_back(function_call);
 
                 EraseFront(&tokens, 1);
-
-                // if (!(tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";"))
-                // {
-                //     ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing ; at end of statement"});
-                // }
-
-                // EraseFront(&tokens, 1);
             }
             else
             {

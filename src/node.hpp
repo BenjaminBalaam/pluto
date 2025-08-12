@@ -36,7 +36,7 @@ class Literal : public Node
 {
     public:
         std::optional<int> l_integer;
-        std::optional<float> l_float;
+        std::optional<double> l_float;
         std::optional<std::string> l_string;
 
         Literal();

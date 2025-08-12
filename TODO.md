@@ -1,4 +1,3 @@
--   [ ] Make float type use C++ double
 -   [ ] Allow separation of return values
 -   [ ] Implement Templates
 -   [ ] Fix bugs in error message code display

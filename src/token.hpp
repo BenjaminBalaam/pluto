@@ -37,9 +37,9 @@ class Integer : public Token
 class Float : public Token
 {
     public:
-        float number;
+        double number;
 
-        Float(float number);
+        Float(double number);
 
         friend std::ostream& operator<<(std::ostream& os, const Float& f);
 };
@@ -104,6 +104,6 @@ class Operator : public Token
         friend std::ostream& operator<<(std::ostream& os, const Operator& o);
 };
 
-std::tuple<std::string, int, float> GetTokenValue(Token* token);
+std::tuple<std::string, int, double> GetTokenValue(Token* token);
 
 #endif
