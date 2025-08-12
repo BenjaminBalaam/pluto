@@ -549,56 +549,85 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             }
             else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
-                Type return_type = Type("", false, vector<Type>());
+                FUNCTION_DEFINITION:
+                    Type *return_type = NULL;
 
-                Node *n = GetASTEnd(AST);
+                    if (tokens[0]->type == "Keyword" && ((Keyword*)tokens[0])->name == "void")
+                    {
+                        if (EraseFront(&tokens, 1))
+                        {
+                            ThrowError(start, file_end, Error {SyntaxError, "Expected function definition"});
+                        }
+                    }
+                    else
+                    {
+                        Node *n = GetASTEnd(AST);
 
-                AST.pop_back();
+                        AST.pop_back();
 
-                if (n->type == "Type")
-                {
-                    return_type = *(Type*)n;
-                }
-                else if (n->type == "GetVariable")
-                {
-                    return_type = Type(((GetVariable*)n)->name, false, vector<Type>());
-                }
+                        if (n->type == "Type")
+                        {
+                            return_type = (Type*)n;
+                        }
+                        else if (n->type == "GetVariable")
+                        {
+                            return_type = new Type(((GetVariable*)n)->name, false, vector<Type>());
+                        }
+                    }
 
-                Qualifier *qualifier = new Qualifier({});
+                    Qualifier *qualifier = new Qualifier({});
 
-                if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
-                {
-                    qualifier = (Qualifier*)GetASTEnd(AST);
+                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
+                    {
+                        qualifier = (Qualifier*)GetASTEnd(AST);
 
-                    AST.pop_back();
-                }
+                        AST.pop_back();
+                    }
 
-                string name = get<0>(GetTokenValue(tokens[0]));
+                    string name = get<0>(GetTokenValue(tokens[0]));
 
-                EraseFront(&tokens, 1);
+                    EraseFront(&tokens, 1);
 
-                vector<Node*> data;
+                    vector<Node*> data;
 
-                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+                    tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
 
-                if (data.size() == 0)
-                {
-                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
-                }
+                    if (data.size() == 0)
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
 
-                if (data[0]->type != "CodeBlock")
-                {
-                    ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in function definition"});
-                }
+                    if (data[0]->type != "CodeBlock")
+                    {
+                        ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in function definition"});
+                    }
 
-                CodeBlock *code_block = (CodeBlock*)data[0];
+                    CodeBlock *code_block = (CodeBlock*)data[0];
 
-                Node *node = new AssignVariable(qualifier, return_type, name, code_block);
+                    vector<Type> parameter_types = {};
 
-                node->start = start;
-                node->end = code_block->end;
+                    for (Parameter p : code_block->parameters)
+                    {
+                        parameter_types.push_back(p.type_data);
+                    }
 
-                AST.push_back(node);
+                    Type func_type = Type("VoidFunction", false, parameter_types);
+
+                    if (return_type != NULL)
+                    {
+                        func_type.name = "Function";
+                        func_type.content.push_back(*(return_type));
+                    }
+
+                    func_type.start = start;
+                    func_type.end = code_block->end;
+
+                    Node *node = new AssignVariable(qualifier, func_type, name, code_block);
+
+                    node->start = start;
+                    node->end = code_block->end;
+
+                    AST.push_back(node);
             }
             else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
             {
@@ -851,6 +880,10 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 node->end = end;
 
                 AST.push_back(node);
+            }
+            else if (get<0>(GetTokenValue(tokens[0])) == "void")
+            {
+                goto FUNCTION_DEFINITION;
             }
             else if (get<0>(GetTokenValue(tokens[0])) == "class")
             {
@@ -1770,15 +1803,4 @@ bool EraseFront(vector<Token*> *tokens, int length)
     }
 
     return tokens->size() == 0;
-}
-
-void ThrowError(int start, int end, Error error)
-{
-    Node *node = new Node();
-
-    node->start = start;
-    node->end = end;
-    node->error = error;
-
-    throw node;
 }

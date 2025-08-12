@@ -2,9 +2,9 @@
 
 ### Small Changes
 
-### Features
+-   [ ] Maybe rename AssignVariable
 
--   [ ] Add classes
+### Features
 
 -   [ ] Add increment and decrement operators
 -   [ ] Add tertiary operator
@@ -20,6 +20,7 @@
 -   [ ] Check and remove semicolons
 -   [ ] Check all types match
 -   [ ] Check all statements are valid (not qualifiers on their own etc)
+-   [ ] statements in right context (returns in functions etc)
 
 ### Future Reminders
 

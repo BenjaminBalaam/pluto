@@ -11,6 +11,17 @@ using namespace std;
 
 vector<string> Operator_Preference = { "^[\\^]$", "^[\\*\\/\\$\\%]$", "^[\\+\\-]$", "^[<>]|([!=<>]=)$", "^&$", "^\\|$", "^[\\+\\-\\*\\/]?=$" };
 
+void ThrowError(int start, int end, Error error)
+{
+    Node *node = new Node();
+
+    node->start = start;
+    node->end = end;
+    node->error = error;
+
+    throw node;
+}
+
 Node::Node()
 {
     this->type = "";

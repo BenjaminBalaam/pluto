@@ -775,7 +775,17 @@ TEST_CASE("Test Syntax Analyser Define Function")
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
+    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
+    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
+
+    text = "void foo() {}";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "VoidFunction" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
@@ -788,7 +798,7 @@ TEST_CASE("Test Syntax Analyser Define Function")
 
     REQUIRE( AST[0]->type == "AssignVariable" );
     REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "public", "static" } );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
@@ -798,7 +808,7 @@ TEST_CASE("Test Syntax Analyser Define Function")
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
@@ -809,7 +819,7 @@ TEST_CASE("Test Syntax Analyser Define Function")
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
@@ -820,7 +830,7 @@ TEST_CASE("Test Syntax Analyser Define Function")
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
@@ -833,7 +843,7 @@ TEST_CASE("Test Syntax Analyser Define Function")
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
@@ -845,7 +855,7 @@ TEST_CASE("Test Syntax Analyser Define Function")
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
-    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "Function" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );

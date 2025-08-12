@@ -18,6 +18,8 @@ enum ARGUMENT_EXPANSION
 
 extern std::vector<std::string> Operator_Preference;
 
+void ThrowError(int start, int end, Error error);
+
 class Node
 {
     public:
