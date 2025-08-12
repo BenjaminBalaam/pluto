@@ -36,41 +36,43 @@ class Node
         friend std::ostream &operator<<(std::ostream &os, const Node &n);
 };
 
-class Type : public Node
+class TypeExpression : public Node
 {
     public:
         std::string name;
         bool is_array;
-        std::vector<Type> content;
+        std::vector<TypeExpression> content;
 
-        Type(std::string name, bool is_array, std::vector<Type> content);
+        TypeExpression(std::string name, bool is_array, std::vector<TypeExpression> content);
 
         void CheckSemantics(std::vector<Node*> call_stack);
 
-        friend std::ostream &operator<<(std::ostream &os, const Type &data);
+        friend std::ostream &operator<<(std::ostream &os, const TypeExpression &data);
 };
 
 class Parameter : public Node
 {
     public:
-        Type type_data;
+        TypeExpression type_data;
         std::string name;
         std::optional<Node*> default_argument;
         ARGUMENT_EXPANSION argument_expansion;
 
-        Parameter(Type type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
+        Parameter(TypeExpression type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
 
         friend std::ostream &operator<<(std::ostream &os, const Parameter &data);
 };
 
-class Qualifier : public Node
+class QualifierExpression : public Node
 {
     public:
         std::vector<std::string> qualifiers;
 
-        Qualifier(std::vector<std::string> qualifiers);
+        QualifierExpression(std::vector<std::string> qualifiers);
 
-        friend std::ostream &operator<<(std::ostream &os, const Qualifier &data);
+        bool Contains(std::string qualifier);
+
+        friend std::ostream &operator<<(std::ostream &os, const QualifierExpression &data);
 };
 
 class Literal : public Node
@@ -91,11 +93,11 @@ class Literal : public Node
 class CodeBlock : public Node
 {
     public:
-        std::optional<Type> return_type;
+        std::optional<TypeExpression> return_type;
         std::vector<Parameter> parameters;
         std::vector<Node*> content;
 
-        CodeBlock(std::optional<Type> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
+        CodeBlock(std::optional<TypeExpression> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
 
         void CheckSemantics(std::vector<Node*> call_stack);
 
@@ -131,12 +133,12 @@ class GetVariable : public Node
 class DeclareVariable : public Node
 {
     public:
-        Qualifier *qualifier;
-        Type variable_type;
+        QualifierExpression *qualifier;
+        TypeExpression variable_type;
         std::string name;
         Node *value;
 
-        DeclareVariable(Qualifier *qualifier, Type variable_type, std::string name, Node *value);
+        DeclareVariable(QualifierExpression *qualifier, TypeExpression variable_type, std::string name, Node *value);
 
         void CheckSemantics(std::vector<Node*> call_stack);
 

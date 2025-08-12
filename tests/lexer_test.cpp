@@ -38,6 +38,18 @@ TEST_CASE("Test Lexer Numbers")
 
 TEST_CASE("Test Lexer Invalid Numbers")
 {
+    string invalid_float = "9007199254740994";
+    vector<Token*> invalid_float_tokens = Tokenise(invalid_float);
+
+    REQUIRE( invalid_float_tokens[0]->error->type == SyntaxError );
+    REQUIRE( invalid_float_tokens[0]->error->text == "Float too large or too small" );
+
+    string invalid_integer = "2147483648";
+    vector<Token*> invalid_integer_tokens = Tokenise(invalid_integer);
+
+    REQUIRE( invalid_integer_tokens[0]->error->type == SyntaxError );
+    REQUIRE( invalid_integer_tokens[0]->error->text == "Integer too large or too small" );
+
     string invalid_binary = "0b45";
     vector<Token*> invalid_binary_tokens = Tokenise(invalid_binary);
 

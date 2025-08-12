@@ -82,17 +82,17 @@ void Node::CheckSemantics(vector<Node*> call_stack)
 
 ostream &operator<<(ostream &os, const Node &n)
 {
-    if (n.type == "Type")
+    if (n.type == "TypeExpression")
     {
-        return os << (Type&)n;
+        return os << (TypeExpression&)n;
     }
     else if (n.type == "Parameter")
     {
         return os << (Parameter&)n;
     }
-    else if (n.type == "Qualifier")
+    else if (n.type == "QualifierExpression")
     {
-        return os << (Qualifier&)n;
+        return os << (QualifierExpression&)n;
     }
     else if (n.type == "Literal")
     {
@@ -166,12 +166,12 @@ ostream &operator<<(ostream &os, const Node &n)
     return os;
 }
 
-Type::Type(string name, bool is_array, vector<Type> content) : name(name), is_array(is_array), content(content)
+TypeExpression::TypeExpression(string name, bool is_array, vector<TypeExpression> content) : name(name), is_array(is_array), content(content)
 {
-    this->type = "Type";
+    this->type = "TypeExpression";
 }
 
-ostream &operator<<(ostream &os, const Type &data)
+ostream &operator<<(ostream &os, const TypeExpression &data)
 {
     if (data.is_array)
     {
@@ -181,7 +181,7 @@ ostream &operator<<(ostream &os, const Type &data)
     {
         os << data.name << "<";
 
-        for (Type t : data.content)
+        for (TypeExpression t : data.content)
         {
             os << t << ", ";
         }
@@ -192,7 +192,7 @@ ostream &operator<<(ostream &os, const Type &data)
     return os;
 }
 
-Parameter::Parameter(Type type_data, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type_data(type_data), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
+Parameter::Parameter(TypeExpression type_data, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type_data(type_data), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
 {
     this->type = "Parameter";
 }
@@ -220,12 +220,25 @@ ostream &operator<<(ostream &os, const Parameter &data)
     return os;
 }
 
-Qualifier::Qualifier(vector<string> qualifiers) : qualifiers(qualifiers)
+QualifierExpression::QualifierExpression(vector<string> qualifiers) : qualifiers(qualifiers)
 {
-    this->type = "Qualifier";
+    this->type = "QualifierExpression";
 }
 
-ostream &operator<<(ostream &os, const Qualifier &data)
+bool QualifierExpression::Contains(string qualifier)
+{
+    for (string q : this->qualifiers)
+    {
+        if (q == qualifier)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+ostream &operator<<(ostream &os, const QualifierExpression &data)
 {
     for (string qualifier : data.qualifiers)
     {
@@ -262,7 +275,7 @@ ostream &operator<<(ostream &os, const Literal &data)
     return os;
 }
 
-CodeBlock::CodeBlock(optional<Type> return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
+CodeBlock::CodeBlock(optional<TypeExpression> return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
 {
     this->type = "CodeBlock";
 }
@@ -339,7 +352,7 @@ ostream &operator<<(ostream &os, const GetVariable &data)
     return os << data.name;
 }
 
-DeclareVariable::DeclareVariable(Qualifier *qualifier, Type variable_type, string name, Node *value) : qualifier(qualifier), variable_type(variable_type), name(name), value(value)
+DeclareVariable::DeclareVariable(QualifierExpression *qualifier, TypeExpression variable_type, string name, Node *value) : qualifier(qualifier), variable_type(variable_type), name(name), value(value)
 {
     this->type = "DeclareVariable";
 }

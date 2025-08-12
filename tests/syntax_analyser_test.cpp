@@ -6,37 +6,37 @@
 
 using namespace std;
 
-TEST_CASE("Test Syntax Analyser Types")
+TEST_CASE("Test Syntax Analyser Type Expressions")
 {
     string text = "foo<bar> test<a, b, c> foo[] this<is<a, good[], test<>>>";
 
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "Type" );
-    REQUIRE( ((Type*)AST[0])->name == "foo" );
-    REQUIRE( ((Type*)AST[0])->content[0].name == "bar" );
+    REQUIRE( AST[0]->type == "TypeExpression" );
+    REQUIRE( ((TypeExpression*)AST[0])->name == "foo" );
+    REQUIRE( ((TypeExpression*)AST[0])->content[0].name == "bar" );
 
-    REQUIRE( AST[1]->type == "Type" );
-    REQUIRE( ((Type*)AST[1])->name == "test" );
-    REQUIRE( ((Type*)AST[1])->content[0].name == "a" );
-    REQUIRE( ((Type*)AST[1])->content[1].name == "b" );
-    REQUIRE( ((Type*)AST[1])->content[2].name == "c" );
+    REQUIRE( AST[1]->type == "TypeExpression" );
+    REQUIRE( ((TypeExpression*)AST[1])->name == "test" );
+    REQUIRE( ((TypeExpression*)AST[1])->content[0].name == "a" );
+    REQUIRE( ((TypeExpression*)AST[1])->content[1].name == "b" );
+    REQUIRE( ((TypeExpression*)AST[1])->content[2].name == "c" );
 
-    REQUIRE( AST[2]->type == "Type" );
-    REQUIRE( ((Type*)AST[2])->name == "foo" );
-    REQUIRE( ((Type*)AST[2])->is_array );
+    REQUIRE( AST[2]->type == "TypeExpression" );
+    REQUIRE( ((TypeExpression*)AST[2])->name == "foo" );
+    REQUIRE( ((TypeExpression*)AST[2])->is_array );
 
-    REQUIRE( AST[3]->type == "Type" );
-    REQUIRE( ((Type*)AST[3])->name == "this" );
-    REQUIRE( ((Type*)AST[3])->content[0].name == "is" );
-    REQUIRE( ((Type*)AST[3])->content[0].content[0].name == "a" );
-    REQUIRE( ((Type*)AST[3])->content[0].content[1].name == "good" );
-    REQUIRE( ((Type*)AST[3])->content[0].content[1].is_array );
-    REQUIRE( ((Type*)AST[3])->content[0].content[2].name == "test" );
-    REQUIRE( ((Type*)AST[3])->content[0].content[2].content.size() == 0 );
+    REQUIRE( AST[3]->type == "TypeExpression" );
+    REQUIRE( ((TypeExpression*)AST[3])->name == "this" );
+    REQUIRE( ((TypeExpression*)AST[3])->content[0].name == "is" );
+    REQUIRE( ((TypeExpression*)AST[3])->content[0].content[0].name == "a" );
+    REQUIRE( ((TypeExpression*)AST[3])->content[0].content[1].name == "good" );
+    REQUIRE( ((TypeExpression*)AST[3])->content[0].content[1].is_array );
+    REQUIRE( ((TypeExpression*)AST[3])->content[0].content[2].name == "test" );
+    REQUIRE( ((TypeExpression*)AST[3])->content[0].content[2].content.size() == 0 );
 }
 
-TEST_CASE("Test Syntax Analyser Invalid Types")
+TEST_CASE("Test Syntax Analyser Invalid Type Expressions")
 {
     string text = "list<";
 
@@ -81,25 +81,25 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     }
 }
 
-TEST_CASE("Test Syntax Analyser Qualifiers")
+TEST_CASE("Test Syntax Analyser Qualifier Expressions")
 {
     string text = "public public static public static const;";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "Qualifier" );
-    REQUIRE( ((Qualifier*)AST[0])->qualifiers == vector<string> { "public" } );
+    REQUIRE( AST[0]->type == "QualifierExpression" );
+    REQUIRE( ((QualifierExpression*)AST[0])->qualifiers == vector<string> { "public" } );
 
-    REQUIRE( AST[1]->type == "Qualifier" );
-    REQUIRE( ((Qualifier*)AST[1])->qualifiers == vector<string> { "public", "static" } );
+    REQUIRE( AST[1]->type == "QualifierExpression" );
+    REQUIRE( ((QualifierExpression*)AST[1])->qualifiers == vector<string> { "public", "static" } );
 
-    REQUIRE( AST[2]->type == "Qualifier" );
-    REQUIRE( ((Qualifier*)AST[2])->qualifiers == vector<string> { "public", "static", "const" } );
+    REQUIRE( AST[2]->type == "QualifierExpression" );
+    REQUIRE( ((QualifierExpression*)AST[2])->qualifiers == vector<string> { "public", "static", "const" } );
 
     text = "const static public;";
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "Qualifier" );
-    REQUIRE_FALSE( ((Qualifier*)AST[0])->qualifiers == vector<string> { "const", "static", "public" } ); // Qualifiers must be written in the correct order
+    REQUIRE( AST[0]->type == "QualifierExpression" );
+    REQUIRE_FALSE( ((QualifierExpression*)AST[0])->qualifiers == vector<string> { "const", "static", "public" } ); // Qualifiers must be written in the correct order
 
     text = "public";
 

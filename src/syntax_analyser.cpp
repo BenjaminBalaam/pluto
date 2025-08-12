@@ -103,19 +103,19 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     ThrowError(start, file_end, Error {SyntaxError, "Missing end of code block"});
                 }
 
-                if (data.size() != 0 && (data[0]->type == "Type" || data[0]->type == "GetVariable"))
+                if (data.size() != 0 && (data[0]->type == "TypeExpression" || data[0]->type == "GetVariable"))
                 {
                     got_arg = true;
 
-                    Type param_type = Type("", false, vector<Type>());
+                    TypeExpression param_type = TypeExpression("", false, vector<TypeExpression>());
 
-                    if (data[0]->type == "Type")
+                    if (data[0]->type == "TypeExpression")
                     {
-                        param_type = *(Type*)data[0];
+                        param_type = *(TypeExpression*)data[0];
                     }
                     else if (data[0]->type == "GetVariable")
                     {
-                        param_type = Type(((GetVariable*)data[0])->name, false, vector<Type>());
+                        param_type = TypeExpression(((GetVariable*)data[0])->name, false, vector<TypeExpression>());
                     }
 
                     ARGUMENT_EXPANSION param_expansion = None;
@@ -194,7 +194,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 ThrowError(start, file_end, Error {SyntaxError, "Missing end of code block"});
             }
 
-            optional<Type> return_type = optional<Type>();
+            optional<TypeExpression> return_type = optional<TypeExpression>();
 
             if (tokens.size() > 1 && tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "-" && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == ">") {
                 if (EraseFront(&tokens, 2))
@@ -216,13 +216,13 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     ThrowError(start, file_end, Error {SyntaxError, "Invalid character in code block"});
                 }
 
-                if (data[0]->type == "Type")
+                if (data[0]->type == "TypeExpression")
                 {
-                    return_type = *(Type*)data[0];
+                    return_type = *(TypeExpression*)data[0];
                 }
                 else if (data[0]->type == "GetVariable")
                 {
-                    return_type = Type(((GetVariable*)data[0])->name, false, vector<Type>());
+                    return_type = TypeExpression(((GetVariable*)data[0])->name, false, vector<TypeExpression>());
                 }
                 else
                 {
@@ -288,7 +288,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
             }
 
-            CodeBlock *code_block = new CodeBlock(optional<Type>(), {}, content);
+            CodeBlock *code_block = new CodeBlock(optional<TypeExpression>(), {}, content);
 
             code_block->start = start;
             code_block->end = tokens[0]->end;
@@ -428,7 +428,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     ThrowError(start, file_end, Error {SyntaxError, "Missing end of type"});
                 }
 
-                vector<Type> content = vector<Type>();
+                vector<TypeExpression> content = vector<TypeExpression>();
 
                 bool is_type = true;
 
@@ -464,15 +464,15 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                         break;
                     }
 
-                    if (data[0]->type == "Type")
+                    if (data[0]->type == "TypeExpression")
                     {
-                        content.push_back(*(Type*)data[0]);
+                        content.push_back(*(TypeExpression*)data[0]);
 
                         got_arg = true;
                     }
                     else if (data[0]->type == "GetVariable")
                     {
-                        content.push_back(Type(((GetVariable*)data[0])->name, false, vector<Type>()));
+                        content.push_back(TypeExpression(((GetVariable*)data[0])->name, false, vector<TypeExpression>()));
 
                         got_arg = true;
                     }
@@ -522,7 +522,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else
                 {
-                    Type *type = new Type(name, false, content);
+                    TypeExpression *type = new TypeExpression(name, false, content);
 
                     type->start = start;
 
@@ -537,7 +537,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             {
                 string name = ((Identifier*)tokens[0])->name;
 
-                Type *type = new Type(name, true, {});
+                TypeExpression *type = new TypeExpression(name, true, {});
 
                 type->start = start;
 
@@ -547,10 +547,10 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 EraseFront(&tokens, 3);
             }
-            else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
+            else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "TypeExpression" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
                 FUNCTION_DEFINITION:
-                    Type *return_type = NULL;
+                    TypeExpression *return_type = NULL;
 
                     if (tokens[0]->type == "Keyword" && ((Keyword*)tokens[0])->name == "void")
                     {
@@ -565,21 +565,21 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                         AST.pop_back();
 
-                        if (n->type == "Type")
+                        if (n->type == "TypeExpression")
                         {
-                            return_type = (Type*)n;
+                            return_type = (TypeExpression*)n;
                         }
                         else if (n->type == "GetVariable")
                         {
-                            return_type = new Type(((GetVariable*)n)->name, false, vector<Type>());
+                            return_type = new TypeExpression(((GetVariable*)n)->name, false, vector<TypeExpression>());
                         }
                     }
 
-                    Qualifier *qualifier = new Qualifier({});
+                    QualifierExpression *qualifier = new QualifierExpression({});
 
-                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
+                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "QualifierExpression")
                     {
-                        qualifier = (Qualifier*)GetASTEnd(AST);
+                        qualifier = (QualifierExpression*)GetASTEnd(AST);
 
                         AST.pop_back();
                     }
@@ -604,14 +604,14 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                     CodeBlock *code_block = (CodeBlock*)data[0];
 
-                    vector<Type> parameter_types = {};
+                    vector<TypeExpression> parameter_types = {};
 
                     for (Parameter p : code_block->parameters)
                     {
                         parameter_types.push_back(p.type_data);
                     }
 
-                    Type func_type = Type("VoidFunction", false, parameter_types);
+                    TypeExpression func_type = TypeExpression("VoidFunction", false, parameter_types);
 
                     if (return_type != NULL)
                     {
@@ -636,28 +636,28 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                     AST.push_back(statement_end);
             }
-            else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
+            else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "TypeExpression" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
             {
-                Type variable_type = Type("", false, vector<Type>());
+                TypeExpression variable_type = TypeExpression("", false, vector<TypeExpression>());
 
                 Node *n = GetASTEnd(AST);
 
                 AST.pop_back();
 
-                if (n->type == "Type")
+                if (n->type == "TypeExpression")
                 {
-                    variable_type = *(Type*)n;
+                    variable_type = *(TypeExpression*)n;
                 }
                 else if (n->type == "GetVariable")
                 {
-                    variable_type = Type(((GetVariable*)n)->name, false, vector<Type>());
+                    variable_type = TypeExpression(((GetVariable*)n)->name, false, vector<TypeExpression>());
                 }
 
-                Qualifier *qualifier = new Qualifier({});
+                QualifierExpression *qualifier = new QualifierExpression({});
 
-                if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
+                if (StatementStarted(AST) && GetASTEnd(AST)->type == "QualifierExpression")
                 {
-                    qualifier = (Qualifier*)GetASTEnd(AST);
+                    qualifier = (QualifierExpression*)GetASTEnd(AST);
 
                     AST.pop_back();
                 }
@@ -796,32 +796,32 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             {
                 Node *node;
 
-                if (!StatementStarted(AST) || GetASTEnd(AST)->type == "Qualifier")
+                if (!StatementStarted(AST) || GetASTEnd(AST)->type == "QualifierExpression")
                 {
                     node = new GetVariable(((Identifier*)tokens[0])->name);
                 }
-                else if (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable")
+                else if (GetASTEnd(AST)->type == "TypeExpression" || GetASTEnd(AST)->type == "GetVariable")
                 {
-                    Type variable_type = Type("", false, vector<Type>());
+                    TypeExpression variable_type = TypeExpression("", false, vector<TypeExpression>());
 
                     Node *n = GetASTEnd(AST);
 
                     AST.pop_back();
 
-                    if (n->type == "Type")
+                    if (n->type == "TypeExpression")
                     {
-                        variable_type = *(Type*)n;
+                        variable_type = *(TypeExpression*)n;
                     }
                     else if (n->type == "GetVariable")
                     {
-                        variable_type = Type(((GetVariable*)n)->name, false, vector<Type>());
+                        variable_type = TypeExpression(((GetVariable*)n)->name, false, vector<TypeExpression>());
                     }
 
-                    Qualifier *qualifier = new Qualifier({});
+                    QualifierExpression *qualifier = new QualifierExpression({});
 
-                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
+                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "QualifierExpression")
                     {
-                        qualifier = (Qualifier*)GetASTEnd(AST);
+                        qualifier = (QualifierExpression*)GetASTEnd(AST);
 
                         AST.pop_back();
                     }
@@ -881,7 +881,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     }
                 }
 
-                Node *node = new Qualifier(qualifiers);
+                Node *node = new QualifierExpression(qualifiers);
 
                 node->start = start;
                 node->end = end;

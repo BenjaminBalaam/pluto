@@ -27,6 +27,4 @@ bool InMultiExpression(Node *node);
 
 bool EraseFront(std::vector<Token*> *tokens, int length);
 
-void ThrowError(int start, int end, Error error);
-
 #endif

@@ -64,7 +64,7 @@ void CheckStatement(Node *statement, vector<Node*> call_stack)
         return;
     }
 
-    if (statement->type == "Parameter" || statement->type == "Qualifier")
+    if (statement->type == "Parameter" || statement->type == "QualifierExpression")
     {
         ThrowError(statement->start, statement->end, Error {SyntaxError, "Invalid expression"});
     }
@@ -96,7 +96,7 @@ void CheckExpression(Node *expression, vector<Node*> call_stack)
     }
 
     if (
-        expression->type == "Parameter" || expression->type == "Qualifier" || expression->type == "DeclareVariable" ||
+        expression->type == "Parameter" || expression->type == "QualifierExpression" || expression->type == "DeclareVariable" ||
         expression->type == "ClassDefinition" || expression->type == "IfStatement" || expression->type == "SwitchStatement" ||
         expression->type == "ForLoop" || expression->type == "ForEachLoop" || expression->type == "WhileLoop" ||
         expression->type == "Return" || expression->type == "Break" || expression->type == "Continue" ||

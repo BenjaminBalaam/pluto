@@ -7,6 +7,8 @@
 enum ERROR_TYPE
 {
     SyntaxError,
+    IdentifierError,
+    TypeError,
 };
 
 std::ostream &operator<<(std::ostream &os, const ERROR_TYPE &e);

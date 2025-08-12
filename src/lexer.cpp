@@ -258,7 +258,24 @@ vector<Token*> Tokenise(string text)
         }
         else if (regex_search(text, m, re_float))
         {
-            Float *new_float = new Float(stod(m[0]));
+            Float *new_float;
+
+            try
+            {
+                new_float = new Float(stod(m[0]));
+            }
+            catch (out_of_range)
+            {
+                Token *t = new Token();
+
+                t->error = Error {SyntaxError, "Float too large or too small"};
+
+                t->start = comment_start;
+
+                t->end = current_char;
+
+                return vector<Token*> { t };
+            }
 
             new_float->start = current_char;
             new_float->end = current_char + m.length();
@@ -341,7 +358,22 @@ vector<Token*> Tokenise(string text)
             }
             else
             {
-                value = stoi(string_value);
+                try
+                {
+                    value = stoi(string_value);
+                }
+                catch (out_of_range)
+                {
+                    Token *t = new Token();
+
+                    t->error = Error {SyntaxError, "Integer too large or too small"};
+
+                    t->start = comment_start;
+
+                    t->end = current_char;
+
+                    return vector<Token*> { t };
+                }
             }
 
             Integer *new_integer = new Integer(value);

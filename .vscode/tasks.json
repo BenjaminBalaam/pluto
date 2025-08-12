@@ -9,7 +9,10 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": ["$gcc"],
-            "group": "build"
+            "group": "build",
+            "presentation": {
+                "clear": true
+            }
         },
         {
             "type": "cppbuild",
@@ -20,7 +23,10 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": ["$gcc"],
-            "group": "build"
+            "group": "build",
+            "presentation": {
+                "clear": true
+            }
         }
     ],
     "version": "2.0.0"

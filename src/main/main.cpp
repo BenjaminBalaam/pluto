@@ -3,12 +3,16 @@
 #include <string>
 #include <vector>
 #include <regex>
+#include <memory>
 
 #include "main.hpp"
 #include "../lexer.hpp"
 #include "../syntax_analyser.hpp"
 #include "../semantics_analyser.hpp"
+#include "../interpreter.hpp"
 #include "../token.hpp"
+#include "../node.hpp"
+#include "../object.hpp"
 #include "../error.hpp"
 
 using namespace std;
@@ -71,10 +75,29 @@ int main(int argc, char *argv[])
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
 
-    for (Node *node : AST)
+    // for (Node *node : AST)
+    // {
+    //     cout << *node << "\n";
+    // }
+
+    shared_ptr<Object> result;
+    shared_ptr<Environment> env(new Environment(Types, {}));
+
+    try
     {
-        cout << *node << "\n";
-    } 
+        result = Interpret(AST, env, {});
+    }
+    catch (ErrorObject error)
+    {
+        return ThrowError(error.error, error.start, error.end, line_numbers, lines);
+    }
+
+    cout << *env << "\n\n";
+    
+    if (result)
+    {
+        cout << *result;
+    }
 
     return 0;
 }
