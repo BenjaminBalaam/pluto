@@ -16,9 +16,6 @@ enum ARGUMENT_EXPANSION
     Dictionary,
 };
 
-class Parameter;
-class Qualifier;
-
 class Node
 {
     public:
@@ -33,18 +30,6 @@ class Node
         friend std::ostream& operator<<(std::ostream& os, const Node& n);
 };
 
-class Literal : public Node
-{
-    public:
-        std::optional<int> l_integer;
-        std::optional<double> l_float;
-        std::optional<std::string> l_string;
-
-        Literal();
-
-        friend std::ostream& operator<<(std::ostream& os, const Literal& data);
-};
-
 class Type : public Node
 {
     public:
@@ -57,6 +42,41 @@ class Type : public Node
         friend std::ostream& operator<<(std::ostream& os, const Type& data);
 };
 
+class Parameter : public Node
+{
+    public:
+        Type type_data;
+        std::string name;
+        std::optional<Node*> default_argument;
+        ARGUMENT_EXPANSION argument_expansion;
+
+        Parameter(Type type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
+
+        friend std::ostream& operator<<(std::ostream& os, const Parameter& data);
+};
+
+class Qualifier : public Node
+{
+    public:
+        std::vector<std::string> qualifiers;
+
+        Qualifier(std::vector<std::string> qualifiers);
+
+        friend std::ostream& operator<<(std::ostream& os, const Qualifier& data);
+};
+
+class Literal : public Node
+{
+    public:
+        std::optional<int> l_integer;
+        std::optional<double> l_float;
+        std::optional<std::string> l_string;
+
+        Literal();
+
+        friend std::ostream& operator<<(std::ostream& os, const Literal& data);
+};
+
 class CodeBlock : public Node
 {
     public:
@@ -67,6 +87,18 @@ class CodeBlock : public Node
         CodeBlock(std::optional<Type> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
 
         friend std::ostream& operator<<(std::ostream& os, const CodeBlock& data);
+};
+
+class Operation : public Node
+{
+    public:
+        std::string operator_string;
+        Node *left;
+        Node *right;
+
+        Operation(std::string operator_string, Node *left, Node *right);
+
+        friend std::ostream& operator<<(std::ostream& os, const Operation& data);
 };
 
 class GetVariable : public Node
@@ -101,29 +133,6 @@ class FunctionCall : public Node
         FunctionCall(std::string name, std::vector<Node*> arguments);
 
         friend std::ostream& operator<<(std::ostream& os, const FunctionCall& data);
-};
-
-class Parameter : public Node
-{
-    public:
-        Type type_data;
-        std::string name;
-        std::optional<Node*> default_argument;
-        ARGUMENT_EXPANSION argument_expansion;
-
-        Parameter(Type type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
-
-        friend std::ostream& operator<<(std::ostream& os, const Parameter& data);
-};
-
-class Qualifier : public Node
-{
-    public:
-        std::vector<std::string> qualifiers;
-
-        Qualifier(std::vector<std::string> qualifiers);
-
-        friend std::ostream& operator<<(std::ostream& os, const Qualifier& data);
 };
 
 #endif

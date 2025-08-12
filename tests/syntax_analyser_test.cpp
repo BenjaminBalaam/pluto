@@ -6,22 +6,6 @@
 
 using namespace std;
 
-TEST_CASE("Test Syntax Analyser Literals")
-{
-    string text = "23 5.2 'foo'";
-
-    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
-
-    REQUIRE( AST[0]->type == "Literal" );
-    REQUIRE( ((Literal*)AST[0])->l_integer.value() == 23 );
-
-    REQUIRE( AST[1]->type == "Literal" );
-    REQUIRE( ((Literal*)AST[1])->l_float.value() == 5.2 );
-
-    REQUIRE( AST[2]->type == "Literal" );
-    REQUIRE( ((Literal*)AST[2])->l_string.value() == "foo" );
-}
-
 TEST_CASE("Test Syntax Analyser Types")
 {
     string text = "foo<bar> test<a, b, c> foo[] this<is<a, good[], test<>>>";
@@ -122,6 +106,22 @@ TEST_CASE("Test Syntax Analyser Qualifiers")
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending of statement" );
     }
+}
+
+TEST_CASE("Test Syntax Analyser Literals")
+{
+    string text = "23 5.2 'foo'";
+
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Literal" );
+    REQUIRE( ((Literal*)AST[0])->l_integer.value() == 23 );
+
+    REQUIRE( AST[1]->type == "Literal" );
+    REQUIRE( ((Literal*)AST[1])->l_float.value() == 5.2 );
+
+    REQUIRE( AST[2]->type == "Literal" );
+    REQUIRE( ((Literal*)AST[2])->l_string.value() == "foo" );
 }
 
 TEST_CASE("Test Syntax Analyser Code Block")
@@ -405,6 +405,53 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     }
 }
 
+TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of operations
+{
+    string text = "!foo; a >= b; a + b == c - d;";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Operation" );
+    REQUIRE( ((Operation*)AST[0])->operator_string == "!" );
+    REQUIRE( ((Operation*)AST[0])->left == NULL );
+    REQUIRE( ((Operation*)AST[0])->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[0])->right)->name == "foo" );
+
+    REQUIRE( AST[1]->type == "Operation" );
+    REQUIRE( ((Operation*)AST[1])->operator_string == ">=" );
+    REQUIRE( ((Operation*)AST[1])->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[1])->left)->name == "a" );
+    REQUIRE( ((Operation*)AST[1])->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[1])->right)->name == "b" );
+
+    REQUIRE( AST[2]->type == "Operation" );
+    REQUIRE( ((Operation*)AST[2])->operator_string == "+" );
+    REQUIRE( ((Operation*)AST[2])->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[2])->left)->name == "a" );
+    REQUIRE( ((Operation*)AST[2])->right->type == "Operation" );
+    REQUIRE( ((Operation*)((Operation*)AST[2])->right)->operator_string == "==" );
+    REQUIRE( ((Operation*)((Operation*)AST[2])->right)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)AST[2])->right)->left)->name == "b" );
+    REQUIRE( ((Operation*)((Operation*)AST[2])->right)->right->type == "Operation" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->operator_string == "-" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->left)->name == "c" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->right)->name == "d" );
+}
+
+TEST_CASE("Test Syntax Analyser Get Variable")
+{
+    string text = "foo bar";
+
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)AST[0])->name == "foo" );
+
+    REQUIRE( AST[1]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)AST[1])->name == "bar" );
+}
+
 TEST_CASE("Test Syntax Analyser Assign Variable")
 {
     string text = "int foo = 0;";
@@ -463,17 +510,66 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     }
 }
 
-TEST_CASE("Test Syntax Analyser Get Variable")
+TEST_CASE("Test Syntax Analyser Function Call")
 {
-    string text = "foo bar";
-
+    string text = "foo(); bar(0.);";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
-    REQUIRE( AST[0]->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)AST[0])->name == "foo" );
+    REQUIRE( AST[0]->type == "FunctionCall" );
+    REQUIRE( ((FunctionCall*)AST[0])->name == "foo" );
+    REQUIRE( ((FunctionCall*)AST[0])->arguments.size() == 0 );
 
-    REQUIRE( AST[1]->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)AST[1])->name == "bar" );
+    REQUIRE( AST[1]->type == "FunctionCall" );
+    REQUIRE( ((FunctionCall*)AST[1])->name == "bar" );
+    REQUIRE( ((Literal*)((FunctionCall*)AST[1])->arguments[0])->l_float == 0. );
+
+    text = "foo(";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of function call" );
+    }
+
+    text = "foo(bar, ";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of function call" );
+    }
+
+    text = "foo(,";
+    
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing argument" );
+    }
+
+    text = "foo(bar";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending )" );
+    }
 }
 
 TEST_CASE("Test Syntax Analyser Define Function")
@@ -561,66 +657,4 @@ TEST_CASE("Test Syntax Analyser Define Function")
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value()->type == "Literal" );
     REQUIRE( ((Literal*)((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value())->l_string == "abc" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].argument_expansion == Array );
-}
-
-TEST_CASE("Test Syntax Analyser Function Call")
-{
-    string text = "foo(); bar(0.);";
-    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
-
-    REQUIRE( AST[0]->type == "FunctionCall" );
-    REQUIRE( ((FunctionCall*)AST[0])->name == "foo" );
-    REQUIRE( ((FunctionCall*)AST[0])->arguments.size() == 0 );
-
-    REQUIRE( AST[1]->type == "FunctionCall" );
-    REQUIRE( ((FunctionCall*)AST[1])->name == "bar" );
-    REQUIRE( ((Literal*)((FunctionCall*)AST[1])->arguments[0])->l_float == 0. );
-
-    text = "foo(";
-    
-    try
-    {
-        AnalyseSyntax(Tokenise(text));
-    }
-    catch (Node *node)
-    {
-        REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing end of function call" );
-    }
-
-    text = "foo(bar, ";
-    
-    try
-    {
-        AnalyseSyntax(Tokenise(text));
-    }
-    catch (Node *node)
-    {
-        REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing end of function call" );
-    }
-
-    text = "foo(,";
-    
-    try
-    {
-        AnalyseSyntax(Tokenise(text));
-    }
-    catch (Node *node)
-    {
-        REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing argument" );
-    }
-
-    text = "foo(bar";
-
-    try
-    {
-        AnalyseSyntax(Tokenise(text));
-    }
-    catch (Node *node)
-    {
-        REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing ending )" );
-    }
 }
