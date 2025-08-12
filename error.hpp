@@ -1,3 +1,6 @@
+#ifndef error_hpp
+#define error_hpp
+
 #include <string>
 
 enum ERROR_TYPE
@@ -12,3 +15,5 @@ public:
     std::string text;
 
 };
+
+#endif

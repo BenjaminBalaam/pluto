@@ -1,18 +1,24 @@
+#ifndef token_hpp
+#define token_hpp
+
 #include <string>
+#include <vector>
+#include <iostream>
 
 #include "error.hpp"
 
-int x = 0;
-
-std::string Keywords[] = { "if" };
+extern std::vector<std::string> Keywords;
 
 class Token
 {
     public:
         Error error;
 
+        std::string type;
         int start;
         int end;
+
+        friend std::ostream& operator<<(std::ostream& os, const Token& t);
 };
 
 class Integer : public Token
@@ -21,6 +27,8 @@ class Integer : public Token
         int number;
 
         Integer(int number);
+
+        friend std::ostream& operator<<(std::ostream& os, const Integer& i);
 };
 
 class Float : public Token
@@ -29,6 +37,8 @@ class Float : public Token
         float number;
 
         Float(float number);
+
+        friend std::ostream& operator<<(std::ostream& os, const Float& f);
 };
 
 class String : public Token
@@ -37,6 +47,8 @@ class String : public Token
         std::string content;
 
         String(std::string content);
+
+        friend std::ostream& operator<<(std::ostream& os, const String& s);
 };
 
 class Identifier : public Token
@@ -45,6 +57,8 @@ class Identifier : public Token
         std::string name;
         
         Identifier(std::string name);
+
+        friend std::ostream& operator<<(std::ostream& os, const Identifier& id);
 };
 
 class Keyword : public Token
@@ -53,4 +67,8 @@ class Keyword : public Token
         std::string name;
 
         Keyword(std::string name);
+
+        friend std::ostream& operator<<(std::ostream& os, const Keyword& k);
 };
+
+#endif
