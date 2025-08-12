@@ -55,37 +55,54 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
 
                     EraseFront(&tokens, 3);
 
-                    vector<tuple<string, string, optional<Node*>>> parameters = vector<tuple<string, string, optional<Node*>>>();
+                    vector<Parameter> parameters = vector<Parameter>();
 
                     while (!(tokens[0]->type == "Bracket" && get<0>(GetTokenValue(tokens[0])) == ")"))
                     {
-                        if (tokens[0]->type == "Identifier" && tokens[1]->type == "Identifier")
-                        {   
+                        if (tokens[0]->type == "Identifier")
+                        {
                             string param_type = ((Identifier*)tokens[0])->name;
-                            string param_name = ((Identifier*)tokens[1])->name;
-                            optional<Node*> param_def_value = optional<Node*>();
 
-                            EraseFront(&tokens, 2);
+                            EraseFront(&tokens, 1);
 
-                            if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "=")
+                            ARGUMENT_EXPANSION param_expansion = None;
+
+                            if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "*")
                             {
+                                param_expansion = Array;
+
                                 EraseFront(&tokens, 1);
 
-                                vector<Node*> data;
+                                if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "*")
+                                {
+                                    param_expansion = Dictionary;
 
-                                tie(data, tokens) = AnalyseSyntax(tokens, { NULL, true });
-
-                                param_def_value = optional<Node*>(data[0]);
+                                    EraseFront(&tokens, 1);
+                                }
                             }
 
-                            parameters.push_back({ param_type, param_name, param_def_value });
-                        }
-                        else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ",")
-                        {
-                            EraseFront(&tokens, 1);
-                        }
-                        else
-                        {
+                            if (tokens[0]->type == "Identifier")
+                            {
+                                string param_name = ((Identifier*)tokens[0])->name;
+                                optional<Node*> param_def_value = optional<Node*>();
+
+                                EraseFront(&tokens, 1);
+
+                                if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "=")
+                                {
+                                    EraseFront(&tokens, 1);
+
+                                    vector<Node*> data;
+
+                                    tie(data, tokens) = AnalyseSyntax(tokens, { NULL, true });
+
+                                    param_def_value = optional<Node*>(data[0]);
+                                }
+
+                                parameters.push_back(Parameter(param_type, param_name, param_def_value, param_expansion));
+                            }
+                            else
+                            {
                             Node *node = new Node();
                             node->start = start;
                             node->end = tokens[0]->end;
@@ -98,6 +115,21 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
                             {
                                 node->error = Error {SyntaxError, "Invalid character in function definition"};
                             }
+
+                            throw node;
+                            }
+                        }
+                        else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ",")
+                        {
+                            EraseFront(&tokens, 1);
+                        }
+                        else
+                        {
+                            Node *node = new Node();
+                            node->start = start;
+                            node->end = tokens[0]->end;
+
+                            node->error = Error {SyntaxError, "Invalid character in function definition"};
 
                             throw node;
                         }

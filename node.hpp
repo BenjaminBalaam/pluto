@@ -9,6 +9,15 @@
 
 #include "error.hpp"
 
+enum ARGUMENT_EXPANSION
+{
+    None,
+    Array,
+    Dictionary,
+};
+
+class Parameter;
+
 class Node
 {
     public:
@@ -39,10 +48,10 @@ class CodeBlock : public Node
 {
     public:
         std::string return_type;
-        std::vector<std::tuple<std::string, std::string, std::optional<Node*>>> parameters;
+        std::vector<Parameter> parameters;
         std::vector<Node*> content;
 
-        CodeBlock(std::string return_type, std::vector<std::tuple<std::string, std::string, std::optional<Node*>>> parameters, std::vector<Node*> content);
+        CodeBlock(std::string return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
 
         friend std::ostream& operator<<(std::ostream& os, const CodeBlock& data);
 };
@@ -77,6 +86,19 @@ class FunctionCall : public Node
         FunctionCall(std::string name, std::vector<Node*> arguments);
 
         friend std::ostream& operator<<(std::ostream& os, const FunctionCall& data);
+};
+
+class Parameter : public Node
+{
+    public:
+        std::string type_name;
+        std::string name;
+        std::optional<Node*> default_argument;
+        ARGUMENT_EXPANSION argument_expansion;
+
+        Parameter(std::string type_name, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
+
+        friend std::ostream& operator<<(std::ostream& os, const Parameter& data);
 };
 
 #endif
