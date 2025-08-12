@@ -16,7 +16,7 @@ vector<Token*> Tokenise(string text)
     regex re_string_start = regex("^([\"']|(```))");
     regex re_white_space = regex("^[ \t\f\r\n]");
     regex re_integer = regex("^-?((0[box][0-9A-Fa-f]+)|([0-9]+))");
-    regex re_float = regex("^-?([0-9]+\\.[0-9]*)|([0-9]*\\.[0-9]+)");
+    regex re_float = regex("^-?(([0-9]+\\.[0-9]*)|([0-9]*\\.[0-9]+))");
     regex re_identifier = regex("^[a-zA-Z_][a-zA-Z0-9_]*");
     regex re_control = regex("^[.,;]");
     regex re_bracket = regex("^[\\(\\)\\[\\]\\{\\}]");

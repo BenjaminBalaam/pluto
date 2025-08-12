@@ -56,8 +56,6 @@ int main(int argc, char *argv[])
     }
     catch (Node* node)
     {
-        cout << *node;
-
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
 
