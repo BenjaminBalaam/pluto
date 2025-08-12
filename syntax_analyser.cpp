@@ -12,6 +12,8 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 {
     vector<Node*> AST = vector<Node*>();
 
+    int file_end = tokens[tokens.size() - 1]->end;
+
     while (tokens.size() != 0)
     {
         if (get<0>(return_flags).size() != 0 && ShouldReturn(tokens[0], get<0>(return_flags)) || (AST.size() != 0 && get<1>(return_flags)))
@@ -122,7 +124,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                     EraseFront(&tokens, 1);
                 }
             }
-            else if (AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[0]->type == "Identifier" && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
+            else if (AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
                 Type return_type = Type("", vector<Type>());
 
@@ -141,23 +143,19 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 string name = get<0>(GetTokenValue(tokens[0]));
 
-                if (!(tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "("))
-                {
-                    Node *node = new Node();
-                    node->start = start;
-                    node->end = tokens[1]->end;
-
-                    node->error = Error {SyntaxError, "Invalid character in function definition"};
-
-                    throw node;
-                }
-
                 EraseFront(&tokens, 2);
+
+                int code_block_start = tokens[0]->start;
 
                 vector<Parameter> parameters = vector<Parameter>();
 
                 while (!(tokens[0]->type == "Bracket" && get<0>(GetTokenValue(tokens[0])) == ")"))
                 {
+                    if (tokens.size() == 0)
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                    }
+
                     if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ",")
                     {
                         EraseFront(&tokens, 1);
@@ -211,15 +209,14 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                                 tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Bracket(")") }, false });
 
+                                if (tokens.size() == 0)
+                                {
+                                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                                }
+
                                 if (data.size() == 0)
                                 {
-                                    Node *node = new Node();
-                                    node->start = start;
-                                    node->end = tokens[0]->end;
-
-                                    node->error = Error {SyntaxError, "Invalid character in function definition"};
-
-                                    throw node;
+                                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in function definition"});
                                 }
 
                                 param_def_value = optional<Node*>(data[0]);
@@ -229,31 +226,19 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                         }
                         else
                         {
-                        Node *node = new Node();
-                        node->start = start;
-                        node->end = tokens[0]->end;
-
-                        if (tokens[0]->type == "Identifier")
-                        {
-                            node->error = Error {SyntaxError, "Missing type for parameter"};
-                        }
-                        else
-                        {
-                            node->error = Error {SyntaxError, "Invalid character in function definition"};
-                        }
-
-                        throw node;
+                            if (tokens[0]->type == "Identifier")
+                            {
+                                ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing type for parameter"});
+                            }
+                            else
+                            {
+                                ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in function definition"});
+                            }
                         }
                     }
                     else
                     {
-                        Node *node = new Node();
-                        node->start = start;
-                        node->end = tokens[0]->end;
-
-                        node->error = Error {SyntaxError, "Invalid character in function definition"};
-
-                        throw node;
+                        ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in function definition"});
                     }
                 }
 
@@ -265,19 +250,11 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 {
                     EraseFront(&tokens, 2);
 
-                    int file_end = tokens[tokens.size() - 1]->end;
-
                     tie(content, tokens) = AnalyseSyntax(tokens, { { new Bracket("}") }, false });
 
                     if (tokens.size() == 0)
                     {
-                        Node *node = new Node();
-                        node->start = start;
-                        node->end = file_end;
-
-                        node->error = Error {SyntaxError, "Missing ending }"};
-
-                        throw node;
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
                     }
 
                     end = tokens[0]->end;
@@ -294,21 +271,66 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else
                 {
-                    Node *node = new Node();
-                    node->start = start;
-                    node->end = tokens[0]->end;
-
-                    node->error = Error { SyntaxError, "Invalid character in function definition" };
-
-                    throw node;
+                    ThrowError(start, tokens[0]->end, Error { SyntaxError, "Invalid character in function definition" });
                 }
 
-                Node* node = new AssignVariable(name, new CodeBlock(return_type, parameters, content));
+                CodeBlock* code_block = new CodeBlock(return_type, parameters, content);
+
+                code_block->start = code_block_start;
+                code_block->end = end;
+
+                Node* node = new AssignVariable(return_type, name, code_block);
 
                 node->start = start;
                 node->end = end;
 
                 AST.push_back(node);
+            }
+            else if (AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
+            {
+                Type variable_type = Type("", vector<Type>());
+
+                Node* n = GetASTEnd(AST);
+
+                AST.pop_back();
+
+                if (n->type == "Type")
+                {
+                    variable_type = *(Type*)n;
+                }
+                else if (n->type == "GetVariable")
+                {
+                    variable_type = Type(((GetVariable*)n)->name, vector<Type>());
+                }
+
+                string name = get<0>(GetTokenValue(tokens[0]));
+
+                EraseFront(&tokens, 2);
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(";") }, false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
+                }
+
+                if (data.size() == 0)
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing assignment value"});
+                }
+
+                Node *content = data[0];
+
+                Node* node = new AssignVariable(variable_type, name, content);
+
+                node->start = start;
+                node->end = tokens[0]->end;
+
+                AST.push_back(node);
+
+                EraseFront(&tokens, 1);
             }
             else
             {
@@ -322,9 +344,209 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 EraseFront(&tokens, 1);
             }
         }
+        else if (tokens[0]->type == "Bracket" && get<0>(GetTokenValue(tokens[0])) == "(")
+        {
+            optional<Type> return_type = optional<Type>();
+
+            if (AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable"))
+            {
+                Node* n = GetASTEnd(AST);
+
+                AST.pop_back();
+
+                if (n->type == "Type")
+                {
+                    return_type = *(Type*)n;
+                }
+                else if (n->type == "GetVariable")
+                {
+                    return_type = Type(((GetVariable*)n)->name, vector<Type>());
+                }
+            }
+
+            int start = tokens[0]->start;
+
+            EraseFront(&tokens, 1);
+
+            vector<Parameter> parameters = vector<Parameter>();
+
+            while (!(tokens[0]->type == "Bracket" && get<0>(GetTokenValue(tokens[0])) == ")"))
+            {
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                }
+
+                if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ",")
+                {
+                    EraseFront(&tokens, 1);
+                }
+
+                vector<Node*> data;
+                
+                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                if (data.size() != 0 && (data[0]->type == "Type" || data[0]->type == "GetVariable"))
+                {
+                    Type param_type = Type("", vector<Type>());
+
+                    if (data[0]->type == "Type")
+                    {
+                        param_type = *(Type*)data[0];
+                    }
+                    else if (data[0]->type == "GetVariable")
+                    {
+                        param_type = Type(((GetVariable*)data[0])->name, vector<Type>());
+                    }
+
+                    ARGUMENT_EXPANSION param_expansion = None;
+
+                    if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "*")
+                    {
+                        param_expansion = Array;
+
+                        EraseFront(&tokens, 1);
+
+                        if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "*")
+                        {
+                            param_expansion = Dictionary;
+
+                            EraseFront(&tokens, 1);
+                        }
+                    }
+
+                    if (tokens[0]->type == "Identifier")
+                    {
+                        string param_name = ((Identifier*)tokens[0])->name;
+                        optional<Node*> param_def_value = optional<Node*>();
+
+                        EraseFront(&tokens, 1);
+
+                        if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "=")
+                        {
+                            EraseFront(&tokens, 1);
+
+                            vector<Node*> data;
+
+                            tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Bracket(")") }, false });
+
+                            if (tokens.size() == 0)
+                            {
+                                ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                            }
+
+                            if (data.size() == 0)
+                            {
+                                ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in code block definition"});
+                            }
+
+                            param_def_value = optional<Node*>(data[0]);
+                        }
+
+                        parameters.push_back(Parameter(param_type, param_name, param_def_value, param_expansion));
+                    }
+                    else
+                    {
+                        if (tokens[0]->type == "Identifier")
+                        {
+                            ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing type for parameter"});
+                        }
+                        else
+                        {
+                            ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in code block definition"});
+                        }
+                    }
+                }
+                else
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in code block definition"});
+                }
+            }
+
+            int end;
+
+            vector<Node*> content;
+
+            if (tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "{")
+            {
+                EraseFront(&tokens, 2);
+
+                tie(content, tokens) = AnalyseSyntax(tokens, { { new Bracket("}") }, false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
+                }
+
+                end = tokens[0]->end;
+
+                EraseFront(&tokens, 1);
+            }
+            else if (tokens[1]->type == "Control" && get<0>(GetTokenValue(tokens[1])) == ";")
+            {
+                end = tokens[1]->end;
+
+                EraseFront(&tokens, 2);
+
+                content = vector<Node*>();
+            }
+            else
+            {
+                ThrowError(start, tokens[0]->end, Error { SyntaxError, "Invalid character in code block definition" });
+            }
+
+            Node* node = new CodeBlock(return_type, parameters, content);
+
+            node->start = start;
+            node->end = end;
+
+            AST.push_back(node);
+        }
+        else if (tokens[0]->type == "Bracket" && get<0>(GetTokenValue(tokens[0])) == "{")
+        {
+            optional<Type> return_type = optional<Type>();
+
+            if (AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable"))
+            {
+                Node* n = GetASTEnd(AST);
+
+                AST.pop_back();
+
+                if (n->type == "Type")
+                {
+                    return_type = *(Type*)n;
+                }
+                else if (n->type == "GetVariable")
+                {
+                    return_type = Type(((GetVariable*)n)->name, vector<Type>());
+                }
+            }
+
+            int start = tokens[0]->start;
+
+            EraseFront(&tokens, 1);
+
+            vector<Node*> content;
+
+            tie(content, tokens) = AnalyseSyntax(tokens, { { new Bracket("}") }, false });
+
+            if (tokens.size() == 0)
+            {
+                ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
+            }
+
+            CodeBlock *code_block = new CodeBlock(return_type, {}, content);
+
+            code_block->start = start;
+            code_block->end = tokens[0]->end;
+
+            AST.push_back(code_block);
+
+            EraseFront(&tokens, 1);
+        }
         else
         {
-
+            ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Invalid statement start"});
         }
     }
 
@@ -362,4 +584,15 @@ void EraseFront(vector<Token*> *tokens, int length)
     {
         tokens->erase(tokens->begin());
     }
+}
+
+void ThrowError(int start, int end, Error error)
+{
+    Node *node = new Node();
+
+    node->start = start;
+    node->end = end;
+    node->error = error;
+
+    throw node;
 }

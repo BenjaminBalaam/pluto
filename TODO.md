@@ -2,3 +2,4 @@
 -   [ ] Allow separation of return values
 -   [ ] Implement Templates
 -   [ ] Fix bugs in error message code display
+-   [ ] Add unit tests

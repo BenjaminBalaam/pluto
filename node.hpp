@@ -58,11 +58,11 @@ class Type : public Node
 class CodeBlock : public Node
 {
     public:
-        Type return_type;
+        std::optional<Type> return_type;
         std::vector<Parameter> parameters;
         std::vector<Node*> content;
 
-        CodeBlock(Type return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
+        CodeBlock(std::optional<Type> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
 
         friend std::ostream& operator<<(std::ostream& os, const CodeBlock& data);
 };
@@ -80,10 +80,11 @@ class GetVariable : public Node
 class AssignVariable : public Node
 {
     public:
+        Type variable_type;
         std::string name;
         Node* value;
 
-        AssignVariable(std::string name, Node* value);
+        AssignVariable(Type variable_type, std::string name, Node* value);
 
         friend std::ostream& operator<<(std::ostream& os, const AssignVariable& data);
 };

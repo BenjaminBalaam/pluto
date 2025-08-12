@@ -15,4 +15,6 @@ bool ShouldReturn(Token* current_token, std::vector<Token*> return_tokens);
 
 void EraseFront(std::vector<Token*> *tokens, int length);
 
+void ThrowError(int start, int end, Error error);
+
 #endif

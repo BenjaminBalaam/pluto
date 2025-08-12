@@ -88,14 +88,21 @@ ostream& operator<<(ostream& os, const Type& data)
     return os << ">";
 }
 
-CodeBlock::CodeBlock(Type return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
+CodeBlock::CodeBlock(optional<Type> return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
 {
     this->type = "CodeBlock";
 }
 
 ostream& operator<<(ostream& os, const CodeBlock& data)
 {
-    os << data.return_type << " (";
+    if (data.return_type)
+    {
+        os << data.return_type.value() << " (";
+    }
+    else
+    {
+        os << "(";
+    }
 
     for (Parameter parameter : data.parameters)
     {
@@ -109,7 +116,7 @@ ostream& operator<<(ostream& os, const CodeBlock& data)
         os << *node << "\n";
     }
 
-    os << "}\n";
+    os << "}";
 
     return os;
 }
@@ -124,14 +131,14 @@ ostream& operator<<(ostream& os, const GetVariable& data)
     return os << data.name;
 }
 
-AssignVariable::AssignVariable(string name, Node* value) : name(name), value(value)
+AssignVariable::AssignVariable(Type variable_type, string name, Node* value) : variable_type(variable_type), name(name), value(value)
 {
     this->type = "AssignVariable";
 }
 
 ostream& operator<<(ostream& os, const AssignVariable& data)
 {
-    return os << data.name << " = " << *data.value;
+    return os << data.variable_type << " " << data.name << " = " << *data.value << ";";
 }
 
 FunctionCall::FunctionCall(string name, vector<Node*> arguments) : name(name), arguments(arguments)
