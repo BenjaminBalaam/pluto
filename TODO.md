@@ -5,6 +5,7 @@
 -   [ ] Should integer / do the same as $ or create a float and should float have integer div and modulo operators
 -   [ ] In semantics analyser make sure no default arguments before parameters without default arguments
 -   [ ] Change function definitions because void types exist
+-   [ ] Decide if you can pre-declare variables
 -   [ ] Allow using () in operations
 -   [ ] Remove semicolons recursively
 -   [ ] When checking break and continue in loop, they should be in loop higher in stack than a function definition
@@ -13,9 +14,11 @@
 
 ### Features
 
+-   [ ] Create tests for interpreters
 -   [ ] Allow objects to be created with "new" (and update semantics to include this)
 -   [ ] Allow implicit casting between types
 -   [ ] Change calling a function into a () argument
+-   [ ] Use qualifiers in interpreter
 -   [ ] Add increment and decrement operators
 -   [ ] Add tertiary operator
 -   [ ] Bitwise Binary Operators

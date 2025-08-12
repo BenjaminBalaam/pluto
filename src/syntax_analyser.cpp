@@ -593,6 +593,8 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 CodeBlock *code_block = (CodeBlock*)data[0];
 
+                code_block->return_type = *return_type;
+
                 vector<TypeExpression> parameter_types = {};
 
                 for (ParameterExpression p : code_block->parameters)
@@ -601,7 +603,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
 
                 TypeExpression func_type = TypeExpression("Function", false, parameter_types);
-                func_type.content.push_back(*(return_type));
+                func_type.content.push_back(*return_type);
 
                 func_type.start = start;
                 func_type.end = code_block->end;

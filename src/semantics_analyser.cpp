@@ -105,6 +105,8 @@ void CheckExpression(Node *expression, vector<Node*> call_stack)
     {
         ThrowError(expression->start, expression->end, Error {SyntaxError, "Invalid expression"});
     }
+
+    expression->CheckSemantics(call_stack);
 }
 
 bool InCallStack(vector<Node*> call_stack, string type)

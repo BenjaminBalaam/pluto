@@ -254,7 +254,7 @@ StringObject::StringObject(string value) : value(value)
 
 string StringObject::to_string()
 {
-    return value;
+    return "\"" + value + "\"";
 }
 
 StringObject::~StringObject()

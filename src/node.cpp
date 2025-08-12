@@ -540,9 +540,9 @@ void ForLoop::CheckSemantics(vector<Node*> call_stack)
     vector<Node*> new_call_stack = vector<Node*>(call_stack);
     new_call_stack.push_back(this);
 
-    CheckExpression(this->declaration_expression, call_stack);
-    CheckExpression(this->condition_expression, call_stack);
-    CheckExpression(this->iteration_expression, call_stack);
+    CheckStatement(this->declaration_expression, call_stack);
+    CheckStatement(this->condition_expression, call_stack);
+    CheckStatement(this->iteration_expression, call_stack);
 
     CheckExpression(this->for_code_block, new_call_stack);
 }

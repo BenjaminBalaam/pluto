@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "catch.hpp"
 
 #include "../src/token.hpp"
@@ -38,7 +40,9 @@ TEST_CASE("Test Lexer Numbers")
 
 TEST_CASE("Test Lexer Invalid Numbers")
 {
-    string invalid_float = "9007199254740994";
+    string max_double = to_string(numeric_limits<double>::max());
+    string invalid_float = max_double.substr(0, max_double.size() - 7) + "0.";
+
     vector<Token*> invalid_float_tokens = Tokenise(invalid_float);
 
     REQUIRE( invalid_float_tokens[0]->error->type == SyntaxError );

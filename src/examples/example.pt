@@ -1,5 +1,8 @@
-int a = 4 + 5;
+string h = "help";
 
-a += 3;
+string output = "";
 
-string ans = "ab" + "c";
+for (int i = 0; i < 10; i += 1)
+{
+    output += h;
+}
