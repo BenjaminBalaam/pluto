@@ -716,6 +716,46 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 EraseFront(&tokens, 1);
             }
+            else if (!last && tokens[1]->type == "Control" && get<0>(GetTokenValue(tokens[1])) == ".")
+            {
+                string name = ((Identifier*)tokens[0])->name;
+
+                if (EraseFront(&tokens, 2))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
+                }
+
+                if (data.size() == 0)
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing member access"});
+                }
+
+                if (data.size() > 1)
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Too many expressions"});
+                }
+
+                if (data[0]->type != "GetVariable" && data[0]->type != "FunctionCall" && data[0]->type != "MemberAccess")
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid expression in member access"});
+                }
+
+                MemberAccess *member_access = new MemberAccess(name, data[0]);
+
+                member_access->start = start;
+                member_access->end = tokens[0]->end;
+
+                AST.push_back(member_access);
+            }
             else
             {
                 Node *node;
@@ -1424,6 +1464,11 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 vector<Node*> data;
 
                 tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
+                }
 
                 Return *return_statement = new Return(NULL);
 

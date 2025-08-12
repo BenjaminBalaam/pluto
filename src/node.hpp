@@ -150,6 +150,17 @@ class ClassDefinition : public Node
         friend std::ostream &operator<<(std::ostream &os, const ClassDefinition &data);
 };
 
+class MemberAccess : public Node
+{
+    public:
+        std::string name;
+        Node *statement;
+
+        MemberAccess(std::string name, Node *statement);
+
+        friend std::ostream &operator<<(std::ostream &os, const MemberAccess &data);
+};
+
 class IfStatement : public Node
 {
     public:

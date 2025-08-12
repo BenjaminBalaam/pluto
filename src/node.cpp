@@ -54,6 +54,14 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (FunctionCall&)n;
     }
+    else if (n.type == "ClassDefinition")
+    {
+        return os << (ClassDefinition&)n;
+    }
+    else if (n.type == "MemberAccess")
+    {
+        return os << (MemberAccess&)n;
+    }
     else if (n.type == "IfStatement")
     {
         return os << (IfStatement&)n;
@@ -308,6 +316,16 @@ ostream &operator<<(ostream &os, const ClassDefinition &data)
     os << "}";
 
     return os;
+}
+
+MemberAccess::MemberAccess(string name, Node *statement) : name(name), statement(statement)
+{
+    this->type = "MemberAccess";
+}
+
+ostream &operator<<(ostream &os, const MemberAccess &data)
+{
+    return os << data.name << "." << *data.statement;
 }
 
 IfStatement::IfStatement(Node *if_expression, CodeBlock *if_code_block, vector<Node*> else_if_expressions, vector<CodeBlock*> else_if_code_blocks, CodeBlock *else_code_block) : if_expression(if_expression), if_code_block(if_code_block), else_if_expressions(else_if_expressions), else_if_code_blocks(else_if_code_blocks), else_code_block(else_code_block)

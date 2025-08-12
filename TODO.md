@@ -7,8 +7,10 @@
 -   [ ] Add classes
 
 -   [ ] Add increment and decrement operators
+-   [ ] Add tertiary operator
 -   [ ] Bitwise Binary Operators
 -   [ ] Allow multi-assignments in variable assigning
+-   [ ] Allow entering mutliple expressions into a 1 expression space with tuples
 -   [ ] Implement Templates
 -   [ ] Implement Interfaces (maybe rename)
 -   [ ] Add a smart pointer system

@@ -998,6 +998,102 @@ TEST_CASE("Test Syntax Analyser Class Definition")
     }
 }
 
+TEST_CASE("Test Syntax Analyser Member Access")
+{
+    string text = "foo.bar; foo.bar(); foo.bar.foobar;";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "MemberAccess" );
+    REQUIRE( ((MemberAccess*)AST[0])->name == "foo" );
+    REQUIRE( ((MemberAccess*)AST[0])->statement->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((MemberAccess*)AST[0])->statement)->name == "bar" );
+
+    REQUIRE( AST[2]->type == "MemberAccess" );
+    REQUIRE( ((MemberAccess*)AST[2])->name == "foo" );
+    REQUIRE( ((MemberAccess*)AST[2])->statement->type == "FunctionCall" );
+    REQUIRE( ((FunctionCall*)((MemberAccess*)AST[2])->statement)->name == "bar" );
+    REQUIRE( ((FunctionCall*)((MemberAccess*)AST[2])->statement)->arguments.size() == 0 );
+
+    REQUIRE( AST[4]->type == "MemberAccess" );
+    REQUIRE( ((MemberAccess*)AST[4])->name == "foo" );
+    REQUIRE( ((MemberAccess*)AST[4])->statement->type == "MemberAccess" );
+    REQUIRE( ((MemberAccess*)((MemberAccess*)AST[4])->statement)->name == "bar" );
+    REQUIRE( ((MemberAccess*)((MemberAccess*)AST[4])->statement)->statement->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((MemberAccess*)((MemberAccess*)AST[4])->statement)->statement)->name == "foobar" );
+
+    text = "foo.";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "foo.";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "foo.test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending ;" );
+    }
+
+    text = "foo.;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing member access" );
+    }
+
+    text = "foo.0 0;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Too many expressions" );
+    }
+
+    text = "foo.if (true) {};";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid expression in member access" );
+    }
+}
+
 TEST_CASE("Test Syntax Analyser If Statements")
 {
     string text = "if (exp) {} if (exp) {} else {} if (exp1) {} else if (exp2) {} if (exp1) {} else if (exp2) {} else if (exp3) {} else {}";
