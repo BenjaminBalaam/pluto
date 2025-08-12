@@ -135,7 +135,7 @@ TEST_CASE("Test Lexer Escaping Strings")
 
 TEST_CASE("Test Lexer Comments")
 {
-    string text = "// \\\n \n /* \\*/ \n */";
+    string text = "// \\\n \n /*\n \\*/ \n */";
     vector<Token*> tokens = Tokenise(text);
 
     REQUIRE( tokens.size() == 0 );

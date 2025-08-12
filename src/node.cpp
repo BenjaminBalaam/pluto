@@ -9,6 +9,8 @@
 
 using namespace std;
 
+vector<string> Operator_Preference = { "^[\\^]$", "^[\\*\\/\\$\\%]$", "^[\\+\\-]$", "^[<>]|([!=<>]=)$", "^&$", "^\\|$", "^[\\+\\-\\*\\/]?=$" };
+
 Node::Node()
 {
     this->type = "";
@@ -51,6 +53,10 @@ ostream &operator<<(ostream &os, const Node &n)
     else if (n.type == "Qualifier")
     {
         return os << (Qualifier&)n;
+    }
+    else if (n.type == "StatementEnd")
+    {
+        return os << (StatementEnd&)n;
     }
     
     return os;
@@ -188,7 +194,14 @@ Operation::Operation(string operator_string, Node *left, Node *right) : operator
 
 ostream &operator<<(ostream &os, const Operation &data)
 {
-    return os << *data.left << data.operator_string << *data.right;
+    if (data.left == NULL)
+    {
+        return os << "(" << data.operator_string << *data.right << ")";
+    }
+    else
+    {
+        return os << "(" << *data.left << data.operator_string << *data.right << ")";
+    }
 }
 
 GetVariable::GetVariable(string name) : name(name)
@@ -226,4 +239,14 @@ ostream &operator<<(ostream &os, const FunctionCall &data)
     }
 
     return os << ")";
+}
+
+StatementEnd::StatementEnd()
+{
+    this->type = "StatementEnd";
+}
+
+ostream &operator<<(ostream &os, const StatementEnd &data)
+{
+    return os;
 }

@@ -25,7 +25,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
         int start = tokens[0]->start;
 
-        if (get<0>(return_flags).size() != 0 && ShouldReturn(tokens[0], get<0>(return_flags)) || (AST.size() != 0 && get<1>(return_flags)))
+        if (get<0>(return_flags).size() != 0 && ShouldReturn(tokens[0], get<0>(return_flags)) || (StatementStarted(AST) && get<1>(return_flags)))
         {
             return {AST, tokens};
         }
@@ -293,7 +293,71 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
             EraseFront(&tokens, 1);
         }
-        else if (tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "!")
+        else if (StatementStarted(AST) && tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "^")
+        {
+            Node *left = GetASTEnd(AST);
+
+            AST.pop_back();
+
+            if (EraseFront(&tokens, 1))
+            {
+                ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
+            }
+
+            vector<Node*> content;
+
+            tie(content, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+            if (tokens.size() == 0 && StatementStarted(content))
+            {
+                ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
+            }
+            else if (tokens.size() == 0)
+            {
+                ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
+            }
+
+            if (content.size() == 0)
+            {
+                ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
+            }
+            else if (content[0]->type == "StatementEnd")
+            {
+                ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
+            }
+
+            Node *right = content[0];
+
+            Operation *operation;
+
+            if (left->type == "Operation" && ((Operation*)left)->left == NULL)
+            {
+                Operation *unary = (Operation*)left;
+
+                Operation *binary = new Operation("^", unary->right, right);
+
+                binary->start = start;
+
+                binary->end = tokens[0]->end;
+
+                operation = new Operation(unary->operator_string, NULL, binary);
+
+                operation->start = unary->start;
+
+                operation->end = tokens[0]->end;
+            }
+            else
+            {
+                operation = new Operation("^", left, right);
+
+                operation->start = start;
+
+                operation->end = tokens[0]->end;
+            }
+
+            AST.push_back(operation);
+        }
+        else if (!StatementStarted(AST) && tokens[0]->type == "Operator" && (get<0>(GetTokenValue(tokens[0])) == "!" || get<0>(GetTokenValue(tokens[0])) == "+" || get<0>(GetTokenValue(tokens[0])) == "-"))
         {
             string operator_string = get<0>(GetTokenValue(tokens[0]));
 
@@ -304,14 +368,22 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
             vector<Node*> content;
 
-            tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
+            tie(content, tokens) = AnalyseSyntax(tokens, { {}, true });
 
-            if (tokens.size() == 0)
+            if (tokens.size() == 0 && StatementStarted(content))
             {
                 ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
             }
+            else if (tokens.size() == 0)
+            {
+                ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
+            }
 
             if (content.size() == 0)
+            {
+                ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
+            }
+            else if (content[0]->type == "StatementEnd")
             {
                 ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
             }
@@ -326,42 +398,45 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
             AST.push_back(operation);
         }
-        else if (AST.size() != 0 && tokens[0]->type == "Operator")
+        else if (StatementStarted(AST) && tokens[0]->type == "Operator")
         {
             OPERATION:
-
                 Node *left = GetASTEnd(AST);
 
                 AST.pop_back();
 
-                string operator_string = get<0>(GetTokenValue(tokens[0]));
+                Operation *operation;
+                
+                tie(operation, tokens) = ProcessOperations(return_flags, start, tokens, left);
 
-                if (EraseFront(&tokens, 1))
-                {
-                    ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
-                }
+                // string operator_string = get<0>(GetTokenValue(tokens[0]));
 
-                vector<Node*> content;
+                // if (EraseFront(&tokens, 1))
+                // {
+                //     ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
+                // }
 
-                tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
+                // vector<Node*> content;
 
-                if (tokens.size() == 0)
-                {
-                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
-                }
+                // tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
 
-                if (content.size() == 0)
-                {
-                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
-                }
+                // if (tokens.size() == 0)
+                // {
+                //     ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
+                // }
 
-                Node *right = content[0];
+                // if (content.size() == 0)
+                // {
+                //     ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
+                // }
 
-                Operation *operation = new Operation(operator_string, left, right);
+                // Node *right = content[0];
 
-                operation->start = start;
+                // Operation *operation = new Operation(operator_string, left, right);
 
-                operation->end = tokens[0]->end;
+                // operation->start = start;
+
+                // operation->end = tokens[0]->end;
 
                 AST.push_back(operation);
         }
@@ -497,7 +572,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 EraseFront(&tokens, 3);
             }
-            else if (!last && AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
+            else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
                 Type return_type = Type("", false, vector<Type>());
 
@@ -516,7 +591,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 Qualifier *qualifier = new Qualifier({});
 
-                if (AST.size() != 0 && GetASTEnd(AST)->type == "Qualifier")
+                if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
                 {
                     qualifier = (Qualifier*)GetASTEnd(AST);
 
@@ -550,7 +625,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 AST.push_back(node);
             }
-            else if (!last && AST.size() != 0 && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
+            else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
             {
                 Type variable_type = Type("", false, vector<Type>());
 
@@ -569,7 +644,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 Qualifier *qualifier = new Qualifier({});
 
-                if (AST.size() != 0 && GetASTEnd(AST)->type == "Qualifier")
+                if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
                 {
                     qualifier = (Qualifier*)GetASTEnd(AST);
 
@@ -735,6 +810,13 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
         else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";")
         {
             EraseFront(&tokens, 1);
+
+            Node *node = new StatementEnd();
+
+            node->start = start;
+            node->end = start + 1;
+
+            AST.push_back(node);
         }
         else
         {
@@ -770,6 +852,16 @@ bool ShouldReturn(Token *current_token, vector<pair<Token*, bool>> return_tokens
     return false;
 }
 
+bool StatementStarted(std::vector<Node*> AST)
+{
+    if (GetASTEnd(AST) == NULL || GetASTEnd(AST)->type == "StatementEnd")
+    {
+        return false;
+    }
+
+    return true;
+}
+
 vector<pair<Token*, bool>> GetReturnTokens(vector<Token*> new_return_tokens, vector<pair<Token*, bool>> existing_return_tokens)
 {
     vector<pair<Token*, bool>> return_tokens = {};
@@ -789,6 +881,176 @@ vector<pair<Token*, bool>> GetReturnTokens(vector<Token*> new_return_tokens, vec
     }
 
     return return_tokens;
+}
+
+pair<Operation*, vector<Token*>> ProcessOperations(pair<vector<pair<Token*, bool>>, bool> return_flags, int start, vector<Token*> tokens, Node *left)
+{
+    int file_end = tokens[tokens.size()-1]->end;
+
+    vector<Node*> values = { left };
+
+    vector<string> operators = { };
+
+    bool operation_end = false;
+
+    while (!operation_end)
+    {
+        if (tokens[0]->type != "Operator")
+        {
+            operation_end = true;
+            break;
+        }
+
+        operators.push_back(((Operator*)(tokens[0]))->value);
+
+        if (EraseFront(&tokens, 1))
+        {
+            ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
+        }
+
+        vector<Node*> data;
+
+        tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+        if (tokens.size() == 0 && StatementStarted(data))
+        {
+            ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
+        }
+        else if (tokens.size() == 0)
+        {
+            ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
+        }
+
+        if (data.size() == 0)
+        {
+            ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in operation"});
+        }
+        else if (GetASTEnd(data)->type == "StatementEnd")
+        {
+            ThrowError(start, data[0]->end, Error {SyntaxError, "Missing right expression for operation"});
+        }
+
+        values.push_back(data[0]);
+    }
+
+    Operation *operation = new Operation(operators[0], values[0], NULL);
+
+    for (int i = 1; i < operators.size(); i++)
+    {
+        Node *ending = NULL;
+        
+        if (i == operators.size() - 1)
+        {
+            ending = values[values.size() - 1];
+        }
+
+        if (CompareOperator(operation->operator_string, operators[i]))
+        {
+            Operation *current_op = operation;
+
+            while (current_op->right != NULL)
+            {
+                current_op = (Operation*)current_op->right;
+            }
+
+            current_op->right = values[i];
+
+            //operation->right = values[i];
+            operation = new Operation(operators[i], operation, ending);
+        }
+        else
+        {
+            Operation *current_op = operation;
+
+            while (true)
+            {
+                if (current_op->right == NULL)
+                {
+                    current_op->right = new Operation(operators[i], values[i], ending);
+                    break;
+                }
+                
+                if (CompareOperator(((Operation*)current_op->right)->operator_string, operators[i]))
+                {
+                    Operation *op = (Operation*)current_op->right;
+                    op->right = values[i];
+                    current_op->right = new Operation(operators[i], op, ending);
+
+                    break;
+                }
+                else
+                {
+                    current_op = (Operation*)current_op->right;
+                }
+            }
+        }
+    }
+
+    if (operation->right == NULL)
+    {
+        operation->right = values[values.size() - 1];
+    }
+
+    AddStartAndEnd(operation);
+
+    return {operation, tokens};
+}
+
+bool CompareOperator(string operator1, string operator2)
+{
+    smatch m;
+
+    int op1_level;
+    int op2_level;
+
+    for (int i = 0; i < Operator_Preference.size(); i++)
+    {
+        if (regex_search(operator1, m, regex(Operator_Preference[i])))
+        {
+            op1_level = i;
+        }
+
+        if (regex_search(operator2, m, regex(Operator_Preference[i])))
+        {
+            op2_level = i;
+        }
+    }
+
+    return op1_level <= op2_level;
+}
+
+void AddStartAndEnd(Operation *operation)
+{
+    if (InMultiExpression(operation->left))
+    {
+        AddStartAndEnd((Operation*)operation->left);
+    }
+    
+    operation->start = operation->left->start;
+
+    if (InMultiExpression(operation->right))
+    {
+        AddStartAndEnd((Operation*)operation->right);
+    }
+
+    operation->end = operation->right->end;
+}
+
+bool InMultiExpression(Node *node)
+{
+    if (node->type != "Operation")
+    {
+        return false;
+    }
+
+    Operation *operation = (Operation*)node;
+
+    if (operation->operator_string == "^" || operation->left == NULL)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool EraseFront(vector<Token*> *tokens, int length)

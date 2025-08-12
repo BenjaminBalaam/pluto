@@ -195,7 +195,7 @@ vector<Token*> Tokenise(string text)
 
                 return vector<Token*> { t };
             }
-            if (text[0] == '\n' && !escaping)
+            if (!multiline_comment && text[0] == '\n' && !escaping)
             {
                 currently_comment = false;
 

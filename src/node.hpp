@@ -16,6 +16,8 @@ enum ARGUMENT_EXPANSION
     Dictionary,
 };
 
+extern std::vector<std::string> Operator_Preference;
+
 class Node
 {
     public:
@@ -133,6 +135,14 @@ class FunctionCall : public Node
         FunctionCall(std::string name, std::vector<Node*> arguments);
 
         friend std::ostream &operator<<(std::ostream &os, const FunctionCall &data);
+};
+
+class StatementEnd : public Node
+{
+    public:
+        StatementEnd();
+
+        friend std::ostream &operator<<(std::ostream &os, const StatementEnd &data);
 };
 
 #endif
