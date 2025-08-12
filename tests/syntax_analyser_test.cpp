@@ -59,7 +59,7 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
-        REQUIRE( node->error->text == "Missing ending >" );
+        REQUIRE( node->error->text == "Missing ending ;" ); // Syntax Analyser believes this is a less than operation
     }
 
     text = "list<int,";
@@ -93,7 +93,7 @@ TEST_CASE("Test Syntax Analyser Qualifiers")
     AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "Qualifier" );
-    REQUIRE_FALSE( ((Qualifier*)AST[0])->qualifiers == vector<string> { "const", "static", "public" } );
+    REQUIRE_FALSE( ((Qualifier*)AST[0])->qualifiers == vector<string> { "const", "static", "public" } ); // Qualifiers must be written in the correct order
 
     text = "public";
 
@@ -272,7 +272,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
         REQUIRE( node->error->text == "Missing ending )" );
     }
 
-    text = "(0)";
+    text = "(0)"; // Will have to change when brackets implemented
 
     try
     {
@@ -407,7 +407,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
 
 TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of operations
 {
-    string text = "!foo; a >= b; a + b == c - d;";
+    string text = "!foo; a >= b; a < b; a + b == c - d;";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "Operation" );
@@ -424,19 +424,110 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     REQUIRE( ((GetVariable*)((Operation*)AST[1])->right)->name == "b" );
 
     REQUIRE( AST[2]->type == "Operation" );
-    REQUIRE( ((Operation*)AST[2])->operator_string == "+" );
+    REQUIRE( ((Operation*)AST[2])->operator_string == "<" );
     REQUIRE( ((Operation*)AST[2])->left->type == "GetVariable" );
     REQUIRE( ((GetVariable*)((Operation*)AST[2])->left)->name == "a" );
-    REQUIRE( ((Operation*)AST[2])->right->type == "Operation" );
-    REQUIRE( ((Operation*)((Operation*)AST[2])->right)->operator_string == "==" );
-    REQUIRE( ((Operation*)((Operation*)AST[2])->right)->left->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)((Operation*)AST[2])->right)->left)->name == "b" );
-    REQUIRE( ((Operation*)((Operation*)AST[2])->right)->right->type == "Operation" );
-    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->operator_string == "-" );
-    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->left->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->left)->name == "c" );
-    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->right->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[2])->right)->right)->right)->name == "d" );
+    REQUIRE( ((Operation*)AST[2])->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[2])->right)->name == "b" );
+
+    REQUIRE( AST[3]->type == "Operation" );
+    REQUIRE( ((Operation*)AST[3])->operator_string == "+" );
+    REQUIRE( ((Operation*)AST[3])->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[3])->left)->name == "a" );
+    REQUIRE( ((Operation*)AST[3])->right->type == "Operation" );
+    REQUIRE( ((Operation*)((Operation*)AST[3])->right)->operator_string == "==" );
+    REQUIRE( ((Operation*)((Operation*)AST[3])->right)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)AST[3])->right)->left)->name == "b" );
+    REQUIRE( ((Operation*)((Operation*)AST[3])->right)->right->type == "Operation" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->operator_string == "-" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->left)->name == "c" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->right)->name == "d" );
+
+    text = "> a";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid statement start" );
+    }
+
+    text = "!";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing right expression for operation" );
+    }
+
+    text = "!a";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending ;" );
+    }
+
+    text = "!;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing right expression for operation" );
+    }
+
+    text = "a >";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing right expression for operation" );
+    }
+
+    text = "a > b";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending ;" );
+    }
+
+    text = "a >;";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing right expression for operation" );
+    }
 }
 
 TEST_CASE("Test Syntax Analyser Get Variable")

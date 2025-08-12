@@ -7,7 +7,7 @@ using namespace std;
 
 TEST_CASE("Test Lexer Numbers")
 {
-    string text = "-12.4 .5 0. 2 -0b010 0o732 0xAF2";
+    string text = "-12.4 .5 0. 2 -0b010 0o732 0xAF2 0xaf2";
 
     vector<Token*> tokens = Tokenise(text);
 
@@ -31,6 +31,9 @@ TEST_CASE("Test Lexer Numbers")
 
     REQUIRE( tokens[6]->type == "Integer" );
     REQUIRE( get<1>(GetTokenValue(tokens[6])) == 0xAF2 );
+
+    REQUIRE( tokens[7]->type == "Integer" );
+    REQUIRE( get<1>(GetTokenValue(tokens[7])) == 0xaf2 );
 }
 
 TEST_CASE("Test Lexer Invalid Numbers")
@@ -107,7 +110,7 @@ TEST_CASE("Test Lexer Unterminated Strings")
 
 TEST_CASE("Test Lexer Escaping Strings")
 {
-    string text = "'\\a \\b \\f \\n \\r \\t \\v' '\\051' '\\x6E' '\\u5AF2' '\\u0001FA0A' '\\\n'";
+    string text = "'\\a \\b \\f \\n \\r \\t \\v' '\\051' '\\x6e' '\\u5AF2' '\\u0001FA0A' '\\\n'";
 
     vector<Token*> tokens = Tokenise(text);
 
@@ -115,16 +118,16 @@ TEST_CASE("Test Lexer Escaping Strings")
     REQUIRE( get<0>(GetTokenValue(tokens[0])) == "\a \b \f \n \r \t \v" );
 
     REQUIRE( tokens[1]->type == "String" );
-    REQUIRE( get<0>(GetTokenValue(tokens[1])) == ")" );
+    REQUIRE( get<0>(GetTokenValue(tokens[1])) == ")" ); // The character with code \051
 
     REQUIRE( tokens[2]->type == "String" );
-    REQUIRE( get<0>(GetTokenValue(tokens[2])) == "n" );
+    REQUIRE( get<0>(GetTokenValue(tokens[2])) == "n" ); // The character with code \x6e
 
     REQUIRE( tokens[3]->type == "String" );
-    REQUIRE( get<0>(GetTokenValue(tokens[3])) == "嫲" );
+    REQUIRE( get<0>(GetTokenValue(tokens[3])) == "嫲" ); // The character with code \u5AF2
 
     REQUIRE( tokens[4]->type == "String" );
-    REQUIRE( get<0>(GetTokenValue(tokens[4])) == "🨊" );
+    REQUIRE( get<0>(GetTokenValue(tokens[4])) == "🨊" ); // The character with code \u0001FA0A
 
     REQUIRE( tokens[5]->type == "String" );
     REQUIRE( get<0>(GetTokenValue(tokens[5])) == "\n" );
@@ -168,7 +171,7 @@ TEST_CASE("Test Lexer Identifiers")
     REQUIRE( tokens[2]->type == "Identifier" );
     REQUIRE( get<0>(GetTokenValue(tokens[2])) == "g100" );
 
-    REQUIRE_FALSE( tokens[3]->type == "Identifier" );
+    REQUIRE_FALSE( tokens[3]->type == "Identifier" ); // Identifiers cannot start with a digit
 }
 
 TEST_CASE("Test Lexer Keywords")
