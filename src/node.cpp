@@ -86,9 +86,9 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (TypeExpression&)n;
     }
-    else if (n.type == "Parameter")
+    else if (n.type == "ParameterExpression")
     {
-        return os << (Parameter&)n;
+        return os << (ParameterExpression&)n;
     }
     else if (n.type == "QualifierExpression")
     {
@@ -192,12 +192,12 @@ ostream &operator<<(ostream &os, const TypeExpression &data)
     return os;
 }
 
-Parameter::Parameter(TypeExpression type_data, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type_data(type_data), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
+ParameterExpression::ParameterExpression(TypeExpression type_data, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type_data(type_data), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
 {
-    this->type = "Parameter";
+    this->type = "ParameterExpression";
 }
 
-ostream &operator<<(ostream &os, const Parameter &data)
+ostream &operator<<(ostream &os, const ParameterExpression &data)
 {
     if (data.argument_expansion == None)
     {
@@ -275,7 +275,7 @@ ostream &operator<<(ostream &os, const Literal &data)
     return os;
 }
 
-CodeBlock::CodeBlock(optional<TypeExpression> return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
+CodeBlock::CodeBlock(TypeExpression return_type, vector<ParameterExpression> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
 {
     this->type = "CodeBlock";
 }
@@ -293,16 +293,9 @@ void CodeBlock::CheckSemantics(vector<Node*> call_stack)
 
 ostream &operator<<(ostream &os, const CodeBlock &data)
 {
-    if (data.return_type)
-    {
-        os << data.return_type.value() << " (";
-    }
-    else
-    {
-        os << "(";
-    }
+    os << data.return_type << " (";
 
-    for (Parameter parameter : data.parameters)
+    for (ParameterExpression parameter : data.parameters)
     {
         os << parameter << ", ";
     }

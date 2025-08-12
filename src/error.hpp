@@ -9,6 +9,8 @@ enum ERROR_TYPE
     SyntaxError,
     IdentifierError,
     TypeError,
+    FunctionError,
+    OperationError,
 };
 
 std::ostream &operator<<(std::ostream &os, const ERROR_TYPE &e);

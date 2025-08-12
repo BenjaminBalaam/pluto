@@ -50,7 +50,7 @@ class TypeExpression : public Node
         friend std::ostream &operator<<(std::ostream &os, const TypeExpression &data);
 };
 
-class Parameter : public Node
+class ParameterExpression : public Node
 {
     public:
         TypeExpression type_data;
@@ -58,9 +58,9 @@ class Parameter : public Node
         std::optional<Node*> default_argument;
         ARGUMENT_EXPANSION argument_expansion;
 
-        Parameter(TypeExpression type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
+        ParameterExpression(TypeExpression type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
 
-        friend std::ostream &operator<<(std::ostream &os, const Parameter &data);
+        friend std::ostream &operator<<(std::ostream &os, const ParameterExpression &data);
 };
 
 class QualifierExpression : public Node
@@ -93,11 +93,11 @@ class Literal : public Node
 class CodeBlock : public Node
 {
     public:
-        std::optional<TypeExpression> return_type;
-        std::vector<Parameter> parameters;
+        TypeExpression return_type;
+        std::vector<ParameterExpression> parameters;
         std::vector<Node*> content;
 
-        CodeBlock(std::optional<TypeExpression> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
+        CodeBlock(TypeExpression return_type, std::vector<ParameterExpression> parameters, std::vector<Node*> content);
 
         void CheckSemantics(std::vector<Node*> call_stack);
 

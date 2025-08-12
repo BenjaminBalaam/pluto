@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/pluto",
-            "args": ["example.ps"],
+            "args": ["${workspaceFolder}/src/examples/example.pt"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

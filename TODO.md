@@ -2,17 +2,26 @@
 
 ### Small Changes
 
+-   [ ] Should integer / do the same as $ or create a float
+-   [ ] In semantics analyser make sure no default arguments before parameters without default arguments
 -   [ ] Change function definitions because void types exist
+-   [ ] Allow using () in operations
+-   [ ] Remove semicolons recursively
+-   [ ] When checking break and continue in loop, they should be in loop higher in stack than a function definition
 
 ### Features
 
 -   [ ] Allow objects to be created with "new" (and update semantics to include this)
+-   [ ] Allow implicit casting between types
+-   [ ] Change calling a function into a () argument
 -   [ ] Add increment and decrement operators
 -   [ ] Add tertiary operator
 -   [ ] Bitwise Binary Operators
 -   [ ] Allow larger and smaller integers and floats
 -   [ ] Allow multi-assignments in variable assigning
 -   [ ] Allow entering mutliple expressions into a 1 expression space with tuples
+-   [ ] Allow entering an argument name when calling a function
+-   [ ] Allow qualifiers in function definitions
 -   [ ] Implement Generics
 -   [ ] Implement Interfaces
 -   [ ] Implement closures

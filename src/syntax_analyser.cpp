@@ -71,7 +71,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
             }
 
-            vector<Parameter> parameters = vector<Parameter>();
+            vector<ParameterExpression> parameters = vector<ParameterExpression>();
 
             bool got_arg = false;
 
@@ -107,7 +107,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 {
                     got_arg = true;
 
-                    TypeExpression param_type = TypeExpression("", false, vector<TypeExpression>());
+                    TypeExpression param_type = TypeExpression("void", false, vector<TypeExpression>());
 
                     if (data[0]->type == "TypeExpression")
                     {
@@ -174,7 +174,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                             param_def_value = optional<Node*>(data[0]);
                         }
 
-                        parameters.push_back(Parameter(param_type, param_name, param_def_value, param_expansion));
+                        parameters.push_back(ParameterExpression(param_type, param_name, param_def_value, param_expansion));
                     }
                     else
                     {
@@ -194,7 +194,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 ThrowError(start, file_end, Error {SyntaxError, "Missing end of code block"});
             }
 
-            optional<TypeExpression> return_type = optional<TypeExpression>();
+            TypeExpression return_type = TypeExpression("void", false, {});
 
             if (tokens.size() > 1 && tokens[0]->type == "Operator" && get<0>(GetTokenValue(tokens[0])) == "-" && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == ">") {
                 if (EraseFront(&tokens, 2))
@@ -288,7 +288,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
             }
 
-            CodeBlock *code_block = new CodeBlock(optional<TypeExpression>(), {}, content);
+            CodeBlock *code_block = new CodeBlock(TypeExpression("void", false, {}), {}, content);
 
             code_block->start = start;
             code_block->end = tokens[0]->end;
@@ -549,96 +549,80 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             }
             else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "TypeExpression" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "(")
             {
-                FUNCTION_DEFINITION:
-                    TypeExpression *return_type = NULL;
+                TypeExpression *return_type = NULL;
 
-                    if (tokens[0]->type == "Keyword" && ((Keyword*)tokens[0])->name == "void")
-                    {
-                        if (EraseFront(&tokens, 1))
-                        {
-                            ThrowError(start, file_end, Error {SyntaxError, "Expected function definition"});
-                        }
-                    }
-                    else
-                    {
-                        Node *n = GetASTEnd(AST);
+                Node *n = GetASTEnd(AST);
 
-                        AST.pop_back();
+                AST.pop_back();
 
-                        if (n->type == "TypeExpression")
-                        {
-                            return_type = (TypeExpression*)n;
-                        }
-                        else if (n->type == "GetVariable")
-                        {
-                            return_type = new TypeExpression(((GetVariable*)n)->name, false, vector<TypeExpression>());
-                        }
-                    }
+                if (n->type == "TypeExpression")
+                {
+                    return_type = (TypeExpression*)n;
+                }
+                else if (n->type == "GetVariable")
+                {
+                    return_type = new TypeExpression(((GetVariable*)n)->name, false, vector<TypeExpression>());
+                }
 
-                    QualifierExpression *qualifier = new QualifierExpression({});
+                QualifierExpression *qualifier = new QualifierExpression({});
 
-                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "QualifierExpression")
-                    {
-                        qualifier = (QualifierExpression*)GetASTEnd(AST);
+                if (StatementStarted(AST) && GetASTEnd(AST)->type == "QualifierExpression")
+                {
+                    qualifier = (QualifierExpression*)GetASTEnd(AST);
 
-                        AST.pop_back();
-                    }
+                    AST.pop_back();
+                }
 
-                    string name = get<0>(GetTokenValue(tokens[0]));
+                string name = get<0>(GetTokenValue(tokens[0]));
 
-                    EraseFront(&tokens, 1);
+                EraseFront(&tokens, 1);
 
-                    vector<Node*> data;
+                vector<Node*> data;
 
-                    tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
 
-                    if (data.size() == 0)
-                    {
-                        ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
-                    }
+                if (data.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
 
-                    if (data[0]->type != "CodeBlock")
-                    {
-                        ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in function definition"});
-                    }
+                if (data[0]->type != "CodeBlock")
+                {
+                    ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in function definition"});
+                }
 
-                    CodeBlock *code_block = (CodeBlock*)data[0];
+                CodeBlock *code_block = (CodeBlock*)data[0];
 
-                    vector<TypeExpression> parameter_types = {};
+                vector<TypeExpression> parameter_types = {};
 
-                    for (Parameter p : code_block->parameters)
-                    {
-                        parameter_types.push_back(p.type_data);
-                    }
+                for (ParameterExpression p : code_block->parameters)
+                {
+                    parameter_types.push_back(p.type_data);
+                }
 
-                    TypeExpression func_type = TypeExpression("VoidFunction", false, parameter_types);
+                TypeExpression func_type = TypeExpression("Function", false, parameter_types);
+                func_type.content.push_back(*(return_type));
 
-                    if (return_type != NULL)
-                    {
-                        func_type.name = "Function";
-                        func_type.content.push_back(*(return_type));
-                    }
+                func_type.start = start;
+                func_type.end = code_block->end;
 
-                    func_type.start = start;
-                    func_type.end = code_block->end;
+                Node *node = new DeclareVariable(qualifier, func_type, name, code_block);
 
-                    Node *node = new DeclareVariable(qualifier, func_type, name, code_block);
+                node->start = start;
+                node->end = code_block->end;
 
-                    node->start = start;
-                    node->end = code_block->end;
+                AST.push_back(node);
 
-                    AST.push_back(node);
+                StatementEnd *statement_end = new StatementEnd();
 
-                    StatementEnd *statement_end = new StatementEnd();
+                statement_end->end = code_block->end - 1;
+                statement_end->start = code_block->end;
 
-                    statement_end->end = code_block->end - 1;
-                    statement_end->start = code_block->end;
-
-                    AST.push_back(statement_end);
+                AST.push_back(statement_end);
             }
             else if (!last && StatementStarted(AST) && (GetASTEnd(AST)->type == "TypeExpression" || GetASTEnd(AST)->type == "GetVariable") && tokens[1]->type == "Operator" && get<0>(GetTokenValue(tokens[1])) == "=")
             {
-                TypeExpression variable_type = TypeExpression("", false, vector<TypeExpression>());
+                TypeExpression variable_type = TypeExpression("void", false, vector<TypeExpression>());
 
                 Node *n = GetASTEnd(AST);
 
@@ -802,7 +786,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else if (GetASTEnd(AST)->type == "TypeExpression" || GetASTEnd(AST)->type == "GetVariable")
                 {
-                    TypeExpression variable_type = TypeExpression("", false, vector<TypeExpression>());
+                    TypeExpression variable_type = TypeExpression("void", false, vector<TypeExpression>());
 
                     Node *n = GetASTEnd(AST);
 
@@ -887,10 +871,6 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 node->end = end;
 
                 AST.push_back(node);
-            }
-            else if (get<0>(GetTokenValue(tokens[0])) == "void")
-            {
-                goto FUNCTION_DEFINITION;
             }
             else if (get<0>(GetTokenValue(tokens[0])) == "class")
             {

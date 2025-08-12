@@ -64,11 +64,9 @@ int main(int argc, char *argv[])
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
 
-    AST = AnalyseSemantics(AST, {});
-
     try
     {
-        AST = get<0>(AnalyseSyntax(tokens));
+        AST = AnalyseSemantics(AST, {});
     }
     catch (Node *node)
     {
@@ -85,18 +83,19 @@ int main(int argc, char *argv[])
 
     try
     {
-        result = Interpret(AST, env, {});
+        result = get<0>(Interpret(AST, env, {}));
     }
     catch (ErrorObject error)
     {
         return ThrowError(error.error, error.start, error.end, line_numbers, lines);
     }
 
-    cout << *env << "\n\n";
+
+    cout << "Environment:\n" << *env << "\n\n";
     
     if (result)
     {
-        cout << *result;
+        cout << "Return Value: " << *result;
     }
 
     return 0;

@@ -8,12 +8,22 @@
 #include <tuple>
 #include <optional>
 #include <memory>
+#include <variant>
+#include <functional>
 
 #include "node.hpp"
 #include "error.hpp"
 
 class Environment;
 class Object;
+
+enum RETURN_REASON
+{
+    ReturnStatement,
+    BreakStatement,
+    ContinueStatement,
+    EndOfAST,
+};
 
 extern std::shared_ptr<Environment> Types;
 
@@ -70,6 +80,19 @@ class Member
         friend std::ostream &operator<<(std::ostream &os, const Member &member);
 };
 
+class Parameter
+{
+    public:
+        Type type;
+        std::string name;
+        std::optional<Node*> default_argument;
+        ARGUMENT_EXPANSION argument_expansion;
+
+        Parameter(Type type, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
+
+        friend std::ostream &operator<<(std::ostream &os, const Parameter &parameter);
+};
+
 class Variable
 {
     public:
@@ -94,6 +117,17 @@ class Environment
         void Add(std::string name, Variable variable);
 
         friend std::ostream &operator<<(std::ostream &os, const Environment &environment);
+};
+
+class Call
+{
+    public:
+        std::string node_type;
+        std::optional<Type> return_type;
+
+        Call(std::string node_type, std::optional<Type> return_type);
+
+        friend std::ostream &operator<<(std::ostream &os, const Call &call);
 };
 
 class IntObject : public Object
@@ -160,8 +194,11 @@ class TypeDefinitionObject : public Object
 {
     public:
         std::string name;
+        std::map<std::string, Member> members;
 
-        TypeDefinitionObject(std::string name);
+        TypeDefinitionObject(std::string name, std::map<std::string, Member> members);
+
+        std::optional<Member> GetMember(std::string name);
 
         std::string to_string();
 
@@ -183,11 +220,25 @@ class ClassInstanceObject : public Object
 class FunctionObject : public Object
 {
     public:
-        FunctionObject();
+        Type return_type;
+        std::vector<Parameter> parameters;
+        std::variant<std::vector<Node*>, std::function<std::shared_ptr<Object>(std::shared_ptr<Environment>)>> body;
+
+        FunctionObject(Type return_type, std::vector<Parameter> parameters, std::variant<std::vector<Node*>, std::function<std::shared_ptr<Object>(std::shared_ptr<Environment>)>> body);
 
         std::string to_string();
 
         ~FunctionObject();
+};
+
+class VoidObject : public Object
+{
+    public:
+        VoidObject();
+
+        std::string to_string();
+
+        ~VoidObject();
 };
 
 class ErrorObject : public Object

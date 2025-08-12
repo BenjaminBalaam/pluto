@@ -5,15 +5,15 @@
 #include <sstream>
 
 #include "interpreter.hpp"
-#include "node.hpp"
 #include "object.hpp"
+#include "node.hpp"
 #include "error.hpp"
 
 using namespace std;
 
-shared_ptr<Object> Interpret(vector<Node*> AST, shared_ptr<Environment> env, vector<Node*> call_stack)
+pair<shared_ptr<Object>, RETURN_REASON> Interpret(vector<Node*> AST, shared_ptr<Environment> env, vector<Call> call_stack)
 {
-    shared_ptr<Object> return_value;
+    shared_ptr<Object> return_value = shared_ptr<Object>(new VoidObject());
 
     for (Node* node : AST)
     {
@@ -44,7 +44,10 @@ shared_ptr<Object> Interpret(vector<Node*> AST, shared_ptr<Environment> env, vec
                 return_value = shared_ptr<Object>(new StringObject(literal->l_string.value()));
             }
         }
-        // TODO: CodeBlock, Operation
+        else if (node->type == "CodeBlock")
+        {
+            return_value = InterpretCodeBlock(*(CodeBlock*)node, env);
+        }
         else if (node->type == "GetVariable")
         {
             GetVariable *get_variable = (GetVariable*)node;
@@ -68,9 +71,7 @@ shared_ptr<Object> Interpret(vector<Node*> AST, shared_ptr<Environment> env, vec
             }
 
             Type type = InterpretType(declare_variable->variable_type, env);
-            shared_ptr<Object> value = Interpret({declare_variable->value}, env, call_stack);
-
-            env->Add(declare_variable->name, Variable(value, Qualifier(declare_variable->qualifier->qualifiers)));
+            shared_ptr<Object> value = get<0>(Interpret({declare_variable->value}, env, call_stack));
 
             if (value->type != type)
             {
@@ -79,10 +80,74 @@ shared_ptr<Object> Interpret(vector<Node*> AST, shared_ptr<Environment> env, vec
 
                 throw ErrorObject(declare_variable->start, declare_variable->end, Error {TypeError, s.str()});
             }
-        }
-    }
 
-    return return_value;
+            env->Add(declare_variable->name, Variable(value, Qualifier(declare_variable->qualifier->qualifiers)));
+
+            return_value = shared_ptr<Object>(new VoidObject());
+        }
+        else if (node->type == "FunctionCall")
+        {
+            FunctionCall *function_call = (FunctionCall*)node;
+
+            optional<Variable> func = env->Get(function_call->name);
+
+            if (!func)
+            {
+                throw ErrorObject(function_call->start, function_call->end, Error {IdentifierError, "Identifier '" + function_call->name + "' is not defined"});
+            }
+
+            FunctionObject *function = dynamic_cast<FunctionObject*>(func->object.get());
+
+            if (!function)
+            {
+                throw ErrorObject(function_call->start, function_call->end, Error {IdentifierError, "Identifier '" + function_call->name + "' is not a function"});
+            }
+
+            map<string, Variable> argument_values = {};
+
+            // TODO: Deal with array and map arguments (* and **)
+
+            for (int i = 0; i < function->parameters.size(); i++)
+            {
+                if (i >= function_call->arguments.size())
+                {
+                    if (!function->parameters[i].default_argument)
+                    {
+                        stringstream error;
+                        error << "Expected (";
+
+                        for (int p = 0; p < function->parameters.size(); p++)
+                        {
+                            error << function->parameters[p];
+                            if (p < function->parameters.size() - 1) error << ", ";
+                        }
+
+                        error << ") too few arguments";
+
+                        throw ErrorObject(function_call->start, function_call->end, Error {FunctionError, error.str()});
+                    }
+
+                    argument_values.insert({function->parameters[i].name, Variable(get<0>(Interpret({function->parameters[i].default_argument.value()}, env, call_stack)), Qualifier())});
+                }
+                else
+                {
+                    shared_ptr<Object> value = get<0>(Interpret({function_call->arguments[i]}, env, call_stack));
+
+                    if (function->parameters[i].type != value->type)
+                    {
+                        stringstream s;
+                        s << "A value of type '" << value->type << "' cannot be passed into parameter of type '" << function->parameters[i].type << "'";
+
+                        throw ErrorObject(function_call->arguments[i]->start, function_call->arguments[i]->end, Error {TypeError, s.str()});
+                    }
+
+                    argument_values.insert({function->parameters[i].name, Variable(value, Qualifier())});
+                }
+            }
+
+            return_value = CallFunction(function, argument_values, env, call_stack);
+        }
+        // TODO: ClassDefinition, MemberAccess
 }
 
 Type InterpretType(TypeExpression type_expression, shared_ptr<Environment> env)
@@ -100,5 +165,40 @@ Type InterpretType(TypeExpression type_expression, shared_ptr<Environment> env)
     else
     {
         throw ErrorObject(type_expression.start, type_expression.end, Error {TypeError, "The type '" + type_expression.name + "' is undefined"});
+    }
+}
+
+shared_ptr<FunctionObject> InterpretCodeBlock(CodeBlock code_block, shared_ptr<Environment> env)
+{
+    Type return_type = InterpretType(code_block.return_type, env);
+
+    vector<Parameter> parameters = {};
+
+    for (ParameterExpression p : code_block.parameters)
+    {
+        Type p_type = InterpretType(p.type_data, env);
+
+        parameters.push_back(Parameter(p_type, p.name, p.default_argument, p.argument_expansion));
+    }
+
+    vector<Node*> body = code_block.content;
+
+    return shared_ptr<FunctionObject>(new FunctionObject(return_type, parameters, body));
+}
+
+shared_ptr<Object> CallFunction(FunctionObject *function, map<string, Variable> argument_values, shared_ptr<Environment> env, vector<Call> call_stack)
+{
+    shared_ptr<Environment> func_env = shared_ptr<Environment>(new Environment(env, argument_values));
+
+    if (function->body.index() == 0)
+    {   
+        vector<Call> func_call_stack = vector<Call>(call_stack);
+        func_call_stack.push_back(Call("FunctionCall", function->return_type));
+        
+        return get<0>(Interpret(get<0>(function->body), func_env, func_call_stack));
+    }
+    else
+    {
+        return get<1>(function->body)(func_env);
     }
 }

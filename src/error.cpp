@@ -14,6 +14,14 @@ ostream &operator<<(ostream &os, const ERROR_TYPE &e)
     {
         case SyntaxError:
             return os << "SyntaxError";
+        case IdentifierError:
+            return os << "IdentifierError";
+        case TypeError:
+            return os << "TypeError";
+        case FunctionError:
+            return os << "FunctionError";
+        case OperationError:
+            return os << "OperationError";
     }
 
     return os;

@@ -100,6 +100,34 @@ ostream &operator<<(ostream &os, const Member &member)
     return os << member.qualifiers << " " << *member.object;
 }
 
+Parameter::Parameter(Type type, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type(type), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
+{
+
+}
+
+ostream &operator<<(ostream &os, const Parameter &data)
+{
+    if (data.argument_expansion == None)
+    {
+        os << data.type << " " << data.name;
+    }
+    else if (data.argument_expansion == Array)
+    {
+        os << data.type << " *" << data.name;
+    }
+    else if (data.argument_expansion == Dictionary)
+    {
+        os << data.type << " **" << data.name;
+    }
+
+    if (data.default_argument)
+    {
+        os << " = " << *data.default_argument.value();
+    }
+
+    return os;
+}
+
 Variable::Variable(shared_ptr<Object> object, Qualifier qualifiers) : qualifiers(qualifiers), object(object)
 {
     
@@ -156,6 +184,23 @@ ostream &operator<<(ostream &os, const Environment &environment)
     return os;
 }
 
+Call::Call(std::string node_type, std::optional<Type> return_type) : node_type(node_type), return_type(return_type)
+{
+
+}
+
+ostream &operator<<(ostream &os, const Call &call)
+{
+    if (call.return_type)
+    {
+        return os << "Call: " << call.node_type << "(" << call.return_type.value() << ")";
+    }
+    else
+    {
+        return os << "Call: " << call.node_type << "()";
+    }
+}
+
 IntObject::IntObject(int value) : value(value)
 {
     this->type = Type(Types->Get("int")->object);
@@ -193,7 +238,7 @@ BoolObject::BoolObject(bool value) : value(value)
 
 string BoolObject::to_string()
 {
-    return std::to_string(value);
+    return value ? "true" : "false";
 }
 
 BoolObject::~BoolObject()
@@ -234,9 +279,21 @@ TypeObject::~TypeObject()
 
 }
 
-TypeDefinitionObject::TypeDefinitionObject(string name) : name(name)
+TypeDefinitionObject::TypeDefinitionObject(string name, map<string, Member> members) : name(name), members(members)
 {
     
+}
+
+optional<Member> TypeDefinitionObject::GetMember(string name)
+{
+    auto member = members.find(name);
+
+    if (member != members.end())
+    {
+        return optional<Member>(member->second);
+    }
+
+    return optional<Member>();
 }
 
 string TypeDefinitionObject::to_string()
@@ -267,17 +324,57 @@ ClassInstanceObject::~ClassInstanceObject()
 
 }
 
-FunctionObject::FunctionObject()
+FunctionObject::FunctionObject(Type return_type, vector<Parameter> parameters, variant<vector<Node*>, function<shared_ptr<Object>(shared_ptr<Environment>)>> body) : return_type(return_type), parameters(parameters), body(body)
 {
     this->type = Type(Types->Get("Function")->object);
 }
 
 string FunctionObject::to_string()
 {
-    return "func";
+    stringstream s;
+    s << return_type << " function(";
+
+    for (int i = 0; i < parameters.size(); i++)
+    {
+        s << parameters[i];
+        if (i < parameters.size() - 1) s << ", ";
+    }
+
+    s << ") {";
+
+    if (body.index() == 0)
+    {
+        for (Node *node : get<0>(body))
+        {
+            s << *node << "\n";
+        }
+    }
+    else
+    {
+        s << "C++ Function";
+    }
+
+    s << "}";
+
+    return s.str();
 }
 
 FunctionObject::~FunctionObject()
+{
+
+}
+
+VoidObject::VoidObject()
+{
+
+}
+
+string VoidObject::to_string()
+{
+    return "void";
+}
+
+VoidObject::~VoidObject()
 {
 
 }
@@ -289,7 +386,10 @@ ErrorObject::ErrorObject(int start, int end, Error error) : start(start), end(en
 
 string ErrorObject::to_string()
 {
-    return "error";
+    stringstream s;
+    s << "[" << start << ", " << end << "] " << error.type << ": " << error.text;
+
+    return s.str();
 }
 
 ErrorObject::~ErrorObject()
