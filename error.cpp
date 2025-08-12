@@ -1,6 +1,8 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include "error.hpp"
 
@@ -21,47 +23,49 @@ int ThrowError(Error error, int start, int end, vector<int> line_numbers, vector
 {
     pair<pair<int, int>, pair<int, int>> positions = GetPositions(line_numbers, start, end);
 
+    int digits = (int)(log10(positions.second.first + 1) + 1);
+
     cout << "\033[1;31m" << error.type << ": " << error.text << "\033[m\n";
 
     cout << "\033[0;31mline [" << positions.first.first << ", " << positions.first.second << "]:\n\n";
 
     if (positions.first.first != 1)
     {
-        cout << positions.first.first - 1 << ": " << lines[positions.first.first - 2] << "\n";
+        cout << setfill('0') << setw(digits) << positions.first.first - 1 << ": " << lines[positions.first.first - 2] << "\n";
     }
 
     if (positions.first.first == positions.second.first)
     {
-        cout << positions.first.first << ": "
+        cout << setfill('0') << setw(digits) << positions.first.first << ": "
             << lines[positions.first.first - 1].substr(0, positions.first.second)
             << "\033[4;31m" << lines[positions.first.first - 1].substr(positions.first.second, positions.second.second - positions.first.second)
             << "\033[0;31m" << lines[positions.second.first - 1].substr(positions.second.second, lines[positions.second.first - 1].size() - 1 - positions.second.second) << "\n";
     }
     else
     {
-        cout << positions.first.first << ": "
+        cout << setfill('0') << setw(digits) << positions.first.first << ": "
             << lines[positions.first.first - 1].substr(0, positions.first.second)
             << "\033[4;31m" << lines[positions.first.first - 1].substr(positions.first.second, positions.second.second - positions.first.second)
             << "\n";
 
         for (int i = positions.first.first; i < positions.second.first - 1; i++)
         {
-            cout << "\033[0;31m" << i << ": \033[4;31m" << lines[i] << "\n";
+            cout << "\033[0;31m" << setfill('0') << setw(digits) << i << ": \033[4;31m" << lines[i] << "\n";
         }
 
-        cout << "\033[0;31m" << positions.second.first << ": \033[4;31m"
+        cout << "\033[0;31m" << setfill('0') << setw(digits) << positions.second.first << ": \033[4;31m"
                 << lines[positions.second.first - 1].substr(0, positions.second.second)
                 << "\033[0;31m" << lines[positions.second.first - 1].substr(positions.second.second, lines[positions.second.first - 1].size() - 1 - positions.second.second)
                 << "\n";
     }
 
-    for (int i = positions.first.first; i < positions.second.first - 1; i++)
-    {
-        cout << lines[i] << "\n";
-    }
+    // for (int i = positions.first.first; i < positions.second.first - 1; i++)
+    // {
+    //     cout << lines[i] << "\n";
+    // }
 
     if (positions.second.first != lines.size()) {
-        cout << positions.second.first + 1 << ": " << lines[positions.second.first] << "\n";
+        cout << setfill('0') << setw(digits) << positions.second.first + 1 << ": " << lines[positions.second.first] << "\n";
     }
 
     cout << "\n";
