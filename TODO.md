@@ -2,8 +2,6 @@
 
 ### Small Changes
 
--   [ ] Redo assignment and declaration of variables
--   [ ] Allow user to end assignment or function definitions with no body with a semicolon
 -   [ ] Create tests for syntax_analyser for when AnalyseSyntax produces no AST (invalid token etc) including recursively (can only be done when all structures implemented)
 
 ### Features
@@ -15,6 +13,7 @@
 -   [ ] Bitwise Binary Operators
 -   [ ] Allow multi-assignments in variable assigning
 -   [ ] Implement Templates
+-   [ ] Add a smart pointer system
 
 #### Semantics Analyser
 

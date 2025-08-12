@@ -613,15 +613,15 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
 
 TEST_CASE("Test Syntax Analyser Get Variable")
 {
-    string text = "foo bar";
+    string text = "foo; bar;";
 
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "GetVariable" );
     REQUIRE( ((GetVariable*)AST[0])->name == "foo" );
 
-    REQUIRE( AST[1]->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)AST[1])->name == "bar" );
+    REQUIRE( AST[2]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)AST[2])->name == "bar" );
 }
 
 TEST_CASE("Test Syntax Analyser Assign Variable")
@@ -644,6 +644,23 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "Literal" );
     REQUIRE( ((Literal*)((AssignVariable*)AST[0])->value)->l_integer == 0 );
+
+    text = "int foo;";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((AssignVariable*)AST[0])->value == NULL );
+
+    text = "static const int foo;";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "static", "const" } );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((AssignVariable*)AST[0])->value == NULL );
 
     text = "int foo = 0"; // No ending semi-colon
 

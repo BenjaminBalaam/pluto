@@ -221,7 +221,14 @@ AssignVariable::AssignVariable(Qualifier *qualifier, Type variable_type, string 
 
 ostream &operator<<(ostream &os, const AssignVariable &data)
 {
-    return os << *data.qualifier << data.variable_type << " " << data.name << " = " << *data.value << ";";
+    if (data.value == NULL)
+    {
+        return os << *data.qualifier << data.variable_type << " " << data.name;
+    }
+    else
+    {
+        return os << *data.qualifier << data.variable_type << " " << data.name << " = " << *data.value << ";";
+    }
 }
 
 FunctionCall::FunctionCall(string name, vector<Node*> arguments) : name(name), arguments(arguments)

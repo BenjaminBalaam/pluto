@@ -745,7 +745,40 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             }
             else
             {
-                Node *node = new GetVariable(((Identifier*)tokens[0])->name);
+                Node *node;
+
+                if (!StatementStarted(AST) || GetASTEnd(AST)->type == "Qualifier")
+                {
+                    node = new GetVariable(((Identifier*)tokens[0])->name);
+                }
+                else if (GetASTEnd(AST)->type == "Type" || GetASTEnd(AST)->type == "GetVariable")
+                {
+                    Type variable_type = Type("", false, vector<Type>());
+
+                    Node *n = GetASTEnd(AST);
+
+                    AST.pop_back();
+
+                    if (n->type == "Type")
+                    {
+                        variable_type = *(Type*)n;
+                    }
+                    else if (n->type == "GetVariable")
+                    {
+                        variable_type = Type(((GetVariable*)n)->name, false, vector<Type>());
+                    }
+
+                    Qualifier *qualifier = new Qualifier({});
+
+                    if (StatementStarted(AST) && GetASTEnd(AST)->type == "Qualifier")
+                    {
+                        qualifier = (Qualifier*)GetASTEnd(AST);
+
+                        AST.pop_back();
+                    }
+
+                    node = new AssignVariable(qualifier, variable_type, ((Identifier*)tokens[0])->name, NULL);
+                }
 
                 node->start = start;
                 node->end = tokens[0]->end;
