@@ -44,14 +44,25 @@ class Literal : public Node
         friend std::ostream& operator<<(std::ostream& os, const Literal& data);
 };
 
+class Type : public Node
+{
+    public:
+        std::string name;
+        std::vector<Type> content;
+
+        Type(std::string name, std::vector<Type> content);
+
+        friend std::ostream& operator<<(std::ostream& os, const Type& data);
+};
+
 class CodeBlock : public Node
 {
     public:
-        std::string return_type;
+        Type return_type;
         std::vector<Parameter> parameters;
         std::vector<Node*> content;
 
-        CodeBlock(std::string return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
+        CodeBlock(Type return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
 
         friend std::ostream& operator<<(std::ostream& os, const CodeBlock& data);
 };
@@ -91,12 +102,12 @@ class FunctionCall : public Node
 class Parameter : public Node
 {
     public:
-        std::string type_name;
+        Type type_data;
         std::string name;
         std::optional<Node*> default_argument;
         ARGUMENT_EXPANSION argument_expansion;
 
-        Parameter(std::string type_name, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
+        Parameter(Type type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
 
         friend std::ostream& operator<<(std::ostream& os, const Parameter& data);
 };

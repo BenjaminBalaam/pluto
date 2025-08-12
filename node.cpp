@@ -20,6 +20,10 @@ ostream& operator<<(ostream& os, const Node& n)
     {
         return os << (Literal&)n;
     }
+    else if (n.type == "Type")
+    {
+        return os << (Type&)n;
+    }
     else if (n.type == "CodeBlock")
     {
         return os << (CodeBlock&)n;
@@ -67,7 +71,24 @@ ostream& operator<<(ostream& os, const Literal& data)
     return os;
 }
 
-CodeBlock::CodeBlock(std::string return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
+Type::Type(string name, vector<Type> content) : name(name), content(content)
+{
+    this->type = "Type";
+}
+
+ostream& operator<<(ostream& os, const Type& data)
+{
+    os << data.name << "<";
+
+    for (Type t : data.content)
+    {
+        os << t << ", ";
+    }
+
+    return os << ">";
+}
+
+CodeBlock::CodeBlock(Type return_type, vector<Parameter> parameters, vector<Node*> content) : return_type(return_type), parameters(parameters), content(content)
 {
     this->type = "CodeBlock";
 }
@@ -130,7 +151,7 @@ ostream& operator<<(ostream& os, const FunctionCall& data)
     return os << ")";
 }
 
-Parameter::Parameter(string type_name, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type_name(type_name), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
+Parameter::Parameter(Type type_data, string name, optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion) : type_data(type_data), name(name), default_argument(default_argument), argument_expansion(argument_expansion)
 {
     this->type = "Parameter";
 }
@@ -139,15 +160,15 @@ ostream& operator<<(ostream& os, const Parameter& data)
 {
     if (data.argument_expansion == None)
     {
-        os << data.type_name << " " << data.name;
+        os << data.type_data << " " << data.name;
     }
     else if (data.argument_expansion == Array)
     {
-        os << data.type_name << " *" << data.name;
+        os << data.type_data << " *" << data.name;
     }
     else if (data.argument_expansion == Dictionary)
     {
-        os << data.type_name << " **" << data.name;
+        os << data.type_data << " **" << data.name;
     }
 
     if (data.default_argument)
