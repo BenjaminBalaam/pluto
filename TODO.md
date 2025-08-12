@@ -3,3 +3,4 @@
 -   [ ] Implement Templates
 -   [ ] Fix bugs in error message code display
 -   [ ] Add unit tests
+-   [ ] Sort out whether semicolons are compulsory

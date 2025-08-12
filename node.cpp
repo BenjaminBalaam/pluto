@@ -143,7 +143,7 @@ ostream& operator<<(ostream& os, const AssignVariable& data)
 
 FunctionCall::FunctionCall(string name, vector<Node*> arguments) : name(name), arguments(arguments)
 {
-    this->type = "CallFunction";
+    this->type = "FunctionCall";
 }
 
 ostream& operator<<(ostream& os, const FunctionCall& data)
@@ -152,7 +152,7 @@ ostream& operator<<(ostream& os, const FunctionCall& data)
 
     for (Node* node : data.arguments)
     {
-        os << node << ", ";
+        os << *node << ", ";
     }
 
     return os << ")";
