@@ -1,10 +1,10 @@
 all: build
 
 build:
-	g++ -g *.cpp -o pluto
+	g++ -g src/*.cpp -o bin/pluto
 
 run: build
-	./pluto example.ps
+	./bin/pluto example.ps
 
 clean:
-	rm -f pluto
+	rm -f bin/pluto
