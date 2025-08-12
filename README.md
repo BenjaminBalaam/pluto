@@ -1,4 +1,4 @@
-# Pluto Script
+# Pluto
 
 ## Installation
 
@@ -26,7 +26,7 @@
 
 -   Ubuntu:
 
-        `./pluto-script example.ps`
+        `./pluto example.ps`
 
 ## Example.ps
 
