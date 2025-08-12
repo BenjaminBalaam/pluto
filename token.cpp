@@ -2,6 +2,7 @@
 #include <string>
 
 #include "token.hpp"
+#include "error.hpp"
 
 using namespace std;
 

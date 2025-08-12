@@ -2,6 +2,7 @@
 #define error_hpp
 
 #include <string>
+#include <vector>
 
 enum ERROR_TYPE
 {
@@ -18,6 +19,8 @@ public:
 
 };
 
-int TerminateCompilation();
+int ThrowError(Error error, int start, int end, std::vector<int> line_numbers, std::vector<std::string> lines);
+
+std::pair<std::pair<int, int>, std::pair<int, int>> GetPositions(std::vector<int> lines, int start, int end);
 
 #endif

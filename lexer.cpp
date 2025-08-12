@@ -5,6 +5,7 @@
 #include <regex>
 
 #include "lexer.hpp"
+#include "token.hpp"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ vector<Token*> Tokenise(string text)
 {
     vector<Token*> tokens = vector<Token*>();
 
-    regex re_string_start = regex("^[\"'`]");
+    regex re_string_start = regex("^([\"']|(```))");
     regex re_white_space = regex("^[ \t\f\r\n]");
     regex re_integer = regex("^-?(0[box])?[0-9]+");
     regex re_float = regex("^[0-9]+-?[0-9]+");
@@ -20,22 +21,35 @@ vector<Token*> Tokenise(string text)
     regex re_control = regex("^[.,;]");
     regex re_bracket = regex("^[\\(\\)\\[\\]\\{\\}]");
     regex re_operator = regex("^([=!<>]=)|[\\+\\-\\*/%\\^=<>!&\\|]");
+    regex re_comment_start = regex("^/[/\\*]");
+    regex re_comment_end = regex("^\\*/");
 
     smatch m;
 
-    int current_char;
+    int current_char = 0;
+    bool escaping = false;
 
     bool currently_string = false;
-    bool escaping_string = false;
     char string_start;
-
     String *string_token;
+
+    bool currently_comment = false;
+    bool multiline_comment = false;
+    int comment_start = 0;
 
     while (text != "")
     {
         if (currently_string)
         {
-            if (text[0] == '\n' && !escaping_string)
+            if (string_start == '`' && text != "\n")
+            {
+                string_token->content.append({text[0]});
+
+                EraseFront(&text, &current_char, 1);
+
+                continue;
+            }
+            else if (text[0] == '\n' && !escaping)
             {
                 string_token->error = Error {SyntaxError, "Unterminated string literal"};
 
@@ -43,23 +57,32 @@ vector<Token*> Tokenise(string text)
 
                 return vector<Token*> { string_token };
             }
-            else if (text[0] == string_start && !escaping_string)
+            else if (text[0] == string_start && !escaping)
             {
-                currently_string = false;
+                if (string_start == '`' && !regex_search(text, re_string_start))
+                {
+                    string_token->content.append({text[0]});
 
-                string_token->end = current_char;
-                
-                tokens.push_back(string_token);
+                    EraseFront(&text, &current_char, 1);
+                }
+                else
+                {
+                    currently_string = false;
 
-                EraseFront(&text, &current_char, 1);
+                    string_token->end = current_char;
+                    
+                    tokens.push_back(string_token);
+
+                    EraseFront(&text, &current_char, 1);
+                }
             }
-            else if (escaping_string)
+            else if (escaping)
             {
                 string_token->content.append({text[0]});
 
                 EraseFront(&text, &current_char, 1);
 
-                escaping_string = false;
+                escaping = false;
 
             }
             else if (text[0] == '\\')
@@ -130,7 +153,7 @@ vector<Token*> Tokenise(string text)
                         }
                         else
                         {
-                            escaping_string = true;
+                            escaping = true;
 
                             continue;
                         }
@@ -145,17 +168,75 @@ vector<Token*> Tokenise(string text)
                 EraseFront(&text, &current_char, 1);
             }
         }
+        else if (currently_comment)
+        {
+            if (multiline_comment && text == "\n")
+            {
+                Token *t = new Token();
+
+                t->error = Error {SyntaxError, "Unterminated multiline comment"};
+
+                t->start = comment_start;
+
+                t->end = current_char;
+
+                return vector<Token*> { t };
+            }
+            if (text[0] == '\n' && !escaping)
+            {
+                currently_comment = false;
+
+                EraseFront(&text, &current_char, 1);
+            }
+            else if (multiline_comment && regex_search(text, re_comment_end) && !escaping)
+            {
+                currently_comment = false;
+
+                EraseFront(&text, &current_char, 2);
+            }
+            else if (escaping)
+            {
+                EraseFront(&text, &current_char, 1);
+            }
+            else if (text[0] == '\\')
+            {
+                escaping = true;
+
+                EraseFront(&text, &current_char, 1);
+            }
+            else
+            {
+                EraseFront(&text, &current_char, 1);
+            }
+        }
         else if (regex_search(text, m, re_string_start))
         {
             currently_string = true;
 
-            string_start = *((string)m[0]).data();
+            string_start = ((string)m[0])[0];
 
             string_token = new String("");
 
             string_token->start = current_char;
 
-            EraseFront(&text, &current_char, 1);
+            EraseFront(&text, &current_char, m[0].length());
+        }
+        else if (regex_search(text, m, re_comment_start))
+        {
+            currently_comment = true;
+
+            comment_start = current_char;
+
+            if (m[0] == "//")
+            {
+                multiline_comment = false;
+            }
+            else
+            {
+                multiline_comment = true;
+            }
+
+            EraseFront(&text, &current_char, 2);
         }
         else if (regex_search(text, m, re_white_space))
         {
