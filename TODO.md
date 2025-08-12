@@ -2,12 +2,14 @@
 
 ### Small Changes
 
--   [ ] Should integer / do the same as $ or create a float
+-   [ ] Should integer / do the same as $ or create a float and should float have integer div and modulo operators
 -   [ ] In semantics analyser make sure no default arguments before parameters without default arguments
 -   [ ] Change function definitions because void types exist
 -   [ ] Allow using () in operations
 -   [ ] Remove semicolons recursively
 -   [ ] When checking break and continue in loop, they should be in loop higher in stack than a function definition
+-   [ ] Allow \* and \*\* in function definitions
+-   [ ] Process generics in types
 
 ### Features
 

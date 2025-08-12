@@ -72,11 +72,8 @@ int main(int argc, char *argv[])
     {
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
-
-    // for (Node *node : AST)
-    // {
-    //     cout << *node << "\n";
-    // }
+    
+    InitialiseInterpreterData();
 
     shared_ptr<Object> result;
     shared_ptr<Environment> env(new Environment(Types, {}));

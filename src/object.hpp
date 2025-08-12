@@ -25,8 +25,6 @@ enum RETURN_REASON
     EndOfAST,
 };
 
-extern std::shared_ptr<Environment> Types;
-
 class Type
 {
     public:
@@ -254,5 +252,18 @@ class ErrorObject : public Object
 
         ~ErrorObject();
 };
+
+void InitialiseInterpreterData();
+
+extern std::shared_ptr<Environment> Types;
+
+Member CreateMethod(std::shared_ptr<Object> definition, std::vector<Parameter> parameters, std::function<std::shared_ptr<Object>(std::shared_ptr<Environment>)> function);
+
+void CreateIntMethods();
+void CreateFloatMethods();
+void CreateBoolMethods();
+void CreateStringMethods();
+void CreateTypeMethods();
+void CreateFunctionMethods();
 
 #endif

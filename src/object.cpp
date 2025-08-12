@@ -6,6 +6,7 @@
 #include <tuple>
 #include <optional>
 #include <memory>
+#include <cmath>
 
 #include "object.hpp"
 #include "node.hpp"
@@ -397,12 +398,369 @@ ErrorObject::~ErrorObject()
 
 }
 
-shared_ptr<Environment> Types = std::shared_ptr<Environment>(new Environment(NULL, std::map<std::string, Variable> {
-    { "void", Variable(shared_ptr<Object>(new TypeDefinitionObject("void")), Qualifier()) },
-    { "int", Variable(shared_ptr<Object>(new TypeDefinitionObject("int")), Qualifier()) },
-    { "float", Variable(shared_ptr<Object>(new TypeDefinitionObject("float")), Qualifier()) },
-    { "bool", Variable(shared_ptr<Object>(new TypeDefinitionObject("bool")), Qualifier()) },
-    { "string", Variable(shared_ptr<Object>(new TypeDefinitionObject("string")), Qualifier()) },
-    { "Type", Variable(shared_ptr<Object>(new TypeDefinitionObject("Type")), Qualifier()) },
-    { "Function", Variable(shared_ptr<Object>(new TypeDefinitionObject("Function")), Qualifier()) },
-}));
+void InitialiseInterpreterData()
+{
+    Types->variables = {
+        { "void", Variable(shared_ptr<Object>(new TypeDefinitionObject("void", {})), Qualifier()) },
+        { "int", Variable(shared_ptr<Object>(new TypeDefinitionObject("int", {})), Qualifier()) },
+        { "float", Variable(shared_ptr<Object>(new TypeDefinitionObject("float", {})), Qualifier()) },
+        { "bool", Variable(shared_ptr<Object>(new TypeDefinitionObject("bool", {})), Qualifier()) },
+        { "string", Variable(shared_ptr<Object>(new TypeDefinitionObject("string", {})), Qualifier()) },
+        { "Type", Variable(shared_ptr<Object>(new TypeDefinitionObject("Type", {})), Qualifier()) },
+        { "Function", Variable(shared_ptr<Object>(new TypeDefinitionObject("Function", {})), Qualifier()) },
+    };
+
+    CreateIntMethods();
+    CreateFloatMethods();
+    CreateBoolMethods();
+    CreateStringMethods();
+    CreateTypeMethods();
+    CreateFunctionMethods();
+}
+
+shared_ptr<Environment> Types = std::shared_ptr<Environment>(new Environment(NULL, std::map<std::string, Variable> {}));
+
+Member CreateMethod(shared_ptr<Object> definition, vector<Parameter> parameters, function<shared_ptr<Object>(shared_ptr<Environment>)> function)
+{
+    return Member(shared_ptr<Object>(new FunctionObject(Type(definition), parameters, function)), Qualifier());
+}
+
+void CreateIntMethods()
+{
+    shared_ptr<Object> intDefinition = Types->Get("int")->object;
+    TypeDefinitionObject *rawIntDefinition = (TypeDefinitionObject*)intDefinition.get();
+
+    vector<Parameter> parameters = {Parameter(Type(intDefinition), "other", optional<Node*>(), None)};
+
+    auto powFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(pow(((IntObject*)env->Get("this")->object.get())->value, ((IntObject*)env->Get("other")->object.get())->value)));
+    };
+    rawIntDefinition->members.insert({ "pow", CreateMethod(intDefinition, parameters, powFunction) });
+
+    auto negativeFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(-((IntObject*)env->Get("this")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "negative", CreateMethod(intDefinition, parameters, negativeFunction) });
+
+    auto positiveFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(+((IntObject*)env->Get("this")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "positive", CreateMethod(intDefinition, parameters, positiveFunction) });
+
+    auto multiplyFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(((IntObject*)env->Get("this")->object.get())->value * ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "multiply", CreateMethod(intDefinition, parameters, multiplyFunction) });
+
+    auto divideFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject((double)(((IntObject*)env->Get("this")->object.get())->value) / (double)(((IntObject*)env->Get("other")->object.get())->value)));
+    };
+    rawIntDefinition->members.insert({ "divide", CreateMethod(intDefinition, parameters, divideFunction) });
+
+    auto intDivideFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(((IntObject*)env->Get("this")->object.get())->value / ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "int_divide", CreateMethod(intDefinition, parameters, intDivideFunction) });
+
+    auto moduloFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(((IntObject*)env->Get("this")->object.get())->value % ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "modulo", CreateMethod(intDefinition, parameters, moduloFunction) });
+
+    auto addFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(((IntObject*)env->Get("this")->object.get())->value + ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "add", CreateMethod(intDefinition, parameters, addFunction) });
+
+    auto subtractFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new IntObject(((IntObject*)env->Get("this")->object.get())->value - ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "subtract", CreateMethod(intDefinition, parameters, subtractFunction) });
+
+    auto equalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((IntObject*)env->Get("this")->object.get())->value == ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "equality", CreateMethod(intDefinition, parameters, equalityFunction) });
+
+    auto inequalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((IntObject*)env->Get("this")->object.get())->value != ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "inequality", CreateMethod(intDefinition, parameters, inequalityFunction) });
+
+    auto greaterEqualFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((IntObject*)env->Get("this")->object.get())->value >= ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "greater_equal", CreateMethod(intDefinition, parameters, greaterEqualFunction) });
+
+    auto lessEqualFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((IntObject*)env->Get("this")->object.get())->value <= ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "less_equal", CreateMethod(intDefinition, parameters, lessEqualFunction) });
+
+    auto greaterFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((IntObject*)env->Get("this")->object.get())->value > ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "greater", CreateMethod(intDefinition, parameters, greaterFunction) });
+
+    auto lessFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((IntObject*)env->Get("this")->object.get())->value < ((IntObject*)env->Get("other")->object.get())->value));
+    };
+    rawIntDefinition->members.insert({ "less", CreateMethod(intDefinition, parameters, lessFunction) });
+
+    auto assignmentFunction = [] (shared_ptr<Environment> env) {
+        ((IntObject*)env->Get("this")->object.get())->value = ((IntObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawIntDefinition->members.insert({ "assignment", CreateMethod(intDefinition, parameters, assignmentFunction) });
+
+    auto addAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((IntObject*)env->Get("this")->object.get())->value += ((IntObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawIntDefinition->members.insert({ "add_assignment", CreateMethod(intDefinition, parameters, addAssignmentFunction) });
+
+    auto subtractAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((IntObject*)env->Get("this")->object.get())->value -= ((IntObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawIntDefinition->members.insert({ "subtract_assignment", CreateMethod(intDefinition, parameters, subtractAssignmentFunction) });
+
+    auto multiplyAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((IntObject*)env->Get("this")->object.get())->value *= ((IntObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawIntDefinition->members.insert({ "multiply_assignment", CreateMethod(intDefinition, parameters, multiplyAssignmentFunction) });
+
+    auto divideAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((IntObject*)env->Get("this")->object.get())->value /= ((IntObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawIntDefinition->members.insert({ "divide_assignment", CreateMethod(intDefinition, parameters, divideAssignmentFunction) });
+}
+
+void CreateFloatMethods()
+{
+    shared_ptr<Object> floatDefinition = Types->Get("float")->object;
+    TypeDefinitionObject *rawFloatDefinition = (TypeDefinitionObject*)floatDefinition.get();
+
+    vector<Parameter> parameters = {Parameter(Type(floatDefinition), "other", optional<Node*>(), None)};
+
+    auto powFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(pow(((FloatObject*)env->Get("this")->object.get())->value, ((FloatObject*)env->Get("other")->object.get())->value)));
+    };
+    rawFloatDefinition->members.insert({ "pow", CreateMethod(floatDefinition, parameters, powFunction) });
+
+    auto negativeFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(-((FloatObject*)env->Get("this")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "negative", CreateMethod(floatDefinition, parameters, negativeFunction) });
+
+    auto positiveFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(+((FloatObject*)env->Get("this")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "positive", CreateMethod(floatDefinition, parameters, positiveFunction) });
+
+    auto multiplyFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(((FloatObject*)env->Get("this")->object.get())->value * ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "multiply", CreateMethod(floatDefinition, parameters, multiplyFunction) });
+
+    auto divideFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(((FloatObject*)env->Get("this")->object.get())->value / ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "divide", CreateMethod(floatDefinition, parameters, divideFunction) });
+
+    auto floatDivideFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject((int)(((FloatObject*)env->Get("this")->object.get())->value) / (int)(((FloatObject*)env->Get("other")->object.get())->value)));
+    };
+    rawFloatDefinition->members.insert({ "integer_divide", CreateMethod(floatDefinition, parameters, floatDivideFunction) });
+
+    auto moduloFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject((int)(((FloatObject*)env->Get("this")->object.get())->value) % (int)(((FloatObject*)env->Get("other")->object.get())->value)));
+    };
+    rawFloatDefinition->members.insert({ "modulo", CreateMethod(floatDefinition, parameters, moduloFunction) });
+
+    auto addFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(((FloatObject*)env->Get("this")->object.get())->value + ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "add", CreateMethod(floatDefinition, parameters, addFunction) });
+
+    auto subtractFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new FloatObject(((FloatObject*)env->Get("this")->object.get())->value - ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "subtract", CreateMethod(floatDefinition, parameters, subtractFunction) });
+
+    auto equalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((FloatObject*)env->Get("this")->object.get())->value == ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "equality", CreateMethod(floatDefinition, parameters, equalityFunction) });
+
+    auto inequalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((FloatObject*)env->Get("this")->object.get())->value != ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "inequality", CreateMethod(floatDefinition, parameters, inequalityFunction) });
+
+    auto greaterEqualFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((FloatObject*)env->Get("this")->object.get())->value >= ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "greater_equal", CreateMethod(floatDefinition, parameters, greaterEqualFunction) });
+
+    auto lessEqualFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((FloatObject*)env->Get("this")->object.get())->value <= ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "less_equal", CreateMethod(floatDefinition, parameters, lessEqualFunction) });
+
+    auto greaterFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((FloatObject*)env->Get("this")->object.get())->value > ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "greater", CreateMethod(floatDefinition, parameters, greaterFunction) });
+
+    auto lessFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((FloatObject*)env->Get("this")->object.get())->value < ((FloatObject*)env->Get("other")->object.get())->value));
+    };
+    rawFloatDefinition->members.insert({ "less", CreateMethod(floatDefinition, parameters, lessFunction) });
+
+    auto assignmentFunction = [] (shared_ptr<Environment> env) {
+        ((FloatObject*)env->Get("this")->object.get())->value = ((FloatObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawFloatDefinition->members.insert({ "assignment", CreateMethod(floatDefinition, parameters, assignmentFunction) });
+
+    auto addAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((FloatObject*)env->Get("this")->object.get())->value += ((FloatObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawFloatDefinition->members.insert({ "add_assignment", CreateMethod(floatDefinition, parameters, addAssignmentFunction) });
+
+    auto subtractAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((FloatObject*)env->Get("this")->object.get())->value -= ((FloatObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawFloatDefinition->members.insert({ "subtract_assignment", CreateMethod(floatDefinition, parameters, subtractAssignmentFunction) });
+
+    auto multiplyAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((FloatObject*)env->Get("this")->object.get())->value *= ((FloatObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawFloatDefinition->members.insert({ "multiply_assignment", CreateMethod(floatDefinition, parameters, multiplyAssignmentFunction) });
+
+    auto divideAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((FloatObject*)env->Get("this")->object.get())->value /= ((FloatObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawFloatDefinition->members.insert({ "divide_assignment", CreateMethod(floatDefinition, parameters, divideAssignmentFunction) });
+}
+
+void CreateBoolMethods()
+{
+    shared_ptr<Object> boolDefinition = Types->Get("bool")->object;
+    TypeDefinitionObject *rawBoolDefinition = (TypeDefinitionObject*)boolDefinition.get();
+
+    vector<Parameter> parameters = {Parameter(Type(boolDefinition), "other", optional<Node*>(), None)};
+
+    auto notFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(!(((BoolObject*)env->Get("this")->object.get())->value)));
+    };
+    rawBoolDefinition->members.insert({ "not", CreateMethod(boolDefinition, parameters, notFunction) });
+
+    auto equalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((BoolObject*)env->Get("this")->object.get())->value == ((BoolObject*)env->Get("other")->object.get())->value));
+    };
+    rawBoolDefinition->members.insert({ "equality", CreateMethod(boolDefinition, parameters, equalityFunction) });
+
+    auto inequalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((BoolObject*)env->Get("this")->object.get())->value != ((BoolObject*)env->Get("other")->object.get())->value));
+    };
+    rawBoolDefinition->members.insert({ "inequality", CreateMethod(boolDefinition, parameters, inequalityFunction) });
+
+    auto andFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((BoolObject*)env->Get("this")->object.get())->value && ((BoolObject*)env->Get("other")->object.get())->value));
+    };
+    rawBoolDefinition->members.insert({ "and", CreateMethod(boolDefinition, parameters, andFunction) });
+
+    auto orFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((BoolObject*)env->Get("this")->object.get())->value || ((BoolObject*)env->Get("other")->object.get())->value));
+    };
+    rawBoolDefinition->members.insert({ "or", CreateMethod(boolDefinition, parameters, orFunction) });
+
+    auto assignmentFunction = [] (shared_ptr<Environment> env) {
+        ((BoolObject*)env->Get("this")->object.get())->value = ((BoolObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawBoolDefinition->members.insert({ "assignment", CreateMethod(boolDefinition, parameters, assignmentFunction) });
+}
+
+void CreateStringMethods()
+{
+    shared_ptr<Object> stringDefinition = Types->Get("string")->object;
+    TypeDefinitionObject *rawStringDefinition = (TypeDefinitionObject*)stringDefinition.get();
+
+    vector<Parameter> parameters = {Parameter(Type(stringDefinition), "other", optional<Node*>(), None)};
+
+    auto addFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new StringObject(((StringObject*)env->Get("this")->object.get())->value + ((StringObject*)env->Get("other")->object.get())->value));
+    };
+    rawStringDefinition->members.insert({ "add", CreateMethod(stringDefinition, parameters, addFunction) });
+
+    auto equalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((StringObject*)env->Get("this")->object.get())->value == ((StringObject*)env->Get("other")->object.get())->value));
+    };
+    rawStringDefinition->members.insert({ "equality", CreateMethod(stringDefinition, parameters, equalityFunction) });
+
+    auto inequalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((StringObject*)env->Get("this")->object.get())->value != ((StringObject*)env->Get("other")->object.get())->value));
+    };
+    rawStringDefinition->members.insert({ "inequality", CreateMethod(stringDefinition, parameters, inequalityFunction) });
+
+    auto assignmentFunction = [] (shared_ptr<Environment> env) {
+        ((StringObject*)env->Get("this")->object.get())->value = ((StringObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawStringDefinition->members.insert({ "assignment", CreateMethod(stringDefinition, parameters, assignmentFunction) });
+
+    auto addAssignmentFunction = [] (shared_ptr<Environment> env) {
+        ((StringObject*)env->Get("this")->object.get())->value += ((StringObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawStringDefinition->members.insert({ "add_assignment", CreateMethod(stringDefinition, parameters, addAssignmentFunction) });
+}
+
+void CreateTypeMethods()
+{
+    shared_ptr<Object> typeDefinition = Types->Get("Type")->object;
+    TypeDefinitionObject *rawTypeDefinition = (TypeDefinitionObject*)typeDefinition.get();
+
+    vector<Parameter> parameters = {Parameter(Type(typeDefinition), "other", optional<Node*>(), None)};
+
+    auto equalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((TypeObject*)env->Get("this")->object.get())->value == ((TypeObject*)env->Get("other")->object.get())->value));
+    };
+    rawTypeDefinition->members.insert({ "equality", CreateMethod(typeDefinition, parameters, equalityFunction) });
+
+    auto inequalityFunction = [] (shared_ptr<Environment> env) {
+        return shared_ptr<Object>( new BoolObject(((TypeObject*)env->Get("this")->object.get())->value != ((TypeObject*)env->Get("other")->object.get())->value));
+    };
+    rawTypeDefinition->members.insert({ "inequality", CreateMethod(typeDefinition, parameters, inequalityFunction) });
+
+    auto assignmentFunction = [] (shared_ptr<Environment> env) {
+        ((TypeObject*)env->Get("this")->object.get())->value = ((TypeObject*)env->Get("other")->object.get())->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawTypeDefinition->members.insert({ "assignment", CreateMethod(typeDefinition, parameters, assignmentFunction) });
+}
+
+void CreateFunctionMethods()
+{
+    shared_ptr<Object> functionDefinition = Types->Get("Function")->object;
+    TypeDefinitionObject *rawFunctionDefinition = (TypeDefinitionObject*)functionDefinition.get();
+
+    vector<Parameter> parameters = {Parameter(Type(functionDefinition), "other", optional<Node*>(), None)};
+
+    auto assignmentFunction = [] (shared_ptr<Environment> env) {
+        ((FunctionObject*)env->Get("this")->object.get())->return_type = ((FunctionObject*)env->Get("other")->object.get())->return_type;
+        ((FunctionObject*)env->Get("this")->object.get())->parameters = ((FunctionObject*)env->Get("other")->object.get())->parameters;
+        ((FunctionObject*)env->Get("this")->object.get())->body = ((FunctionObject*)env->Get("other")->object.get())->body;
+        return shared_ptr<Object>(new VoidObject());
+    };
+    rawFunctionDefinition->members.insert({ "assignment", CreateMethod(functionDefinition, parameters, assignmentFunction) });
+}

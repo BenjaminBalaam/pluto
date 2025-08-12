@@ -48,6 +48,92 @@ pair<shared_ptr<Object>, RETURN_REASON> Interpret(vector<Node*> AST, shared_ptr<
         {
             return_value = InterpretCodeBlock(*(CodeBlock*)node, env);
         }
+        else if (node->type == "Operation")
+        {
+            Operation *operation = (Operation*)node;
+
+            if (operation->left != NULL)
+            {
+                shared_ptr<Object> left = get<0>(Interpret({operation->left}, env, call_stack));
+                shared_ptr<Object> right = get<0>(Interpret({operation->right}, env, call_stack));
+
+                // Allow implicit casting
+                if (left->type != right->type)
+                {
+                    stringstream s;
+                    s << "'" << operation->operator_string << "' operation cannot be applied to type '" << left->type << "' and '" << right->type << "'";
+
+                    throw ErrorObject(operation->start, operation->end, Error {TypeError, s.str()});
+                }
+
+                string func_name;
+
+                if (operation->operator_string == "^") func_name = "pow";
+                else if (operation->operator_string == "*") func_name = "multiply";
+                else if (operation->operator_string == "/") func_name = "divide";
+                else if (operation->operator_string == "$") func_name = "int_divide";
+                else if (operation->operator_string == "%") func_name = "modulo";
+                else if (operation->operator_string == "+") func_name = "add";
+                else if (operation->operator_string == "-") func_name = "subtract";
+                else if (operation->operator_string == "==") func_name = "equality";
+                else if (operation->operator_string == "!=") func_name = "inequality";
+                else if (operation->operator_string == ">=") func_name = "greater_equal";
+                else if (operation->operator_string == "<=") func_name = "less_equal";
+                else if (operation->operator_string == ">") func_name = "greater";
+                else if (operation->operator_string == "<") func_name = "less";
+                else if (operation->operator_string == "&") func_name = "and";
+                else if (operation->operator_string == "|") func_name = "or";
+                else if (operation->operator_string == "=") func_name = "assignment";
+                else if (operation->operator_string == "+=") func_name = "add_assignment";
+                else if (operation->operator_string == "-=") func_name = "subtract_assignment";
+                else if (operation->operator_string == "*=") func_name = "multiply_assignment";
+                else if (operation->operator_string == "/=") func_name = "divide_assignment";
+
+                optional<Member> type_def = ((TypeDefinitionObject*)left->type.type_definition.get())->GetMember(func_name);
+
+                if (!type_def)
+                {
+                    stringstream s;
+                    s << "No method on type '" << left->type << "' for '" << operation->operator_string << "' with type '" << right->type << "'";
+
+                    throw ErrorObject(operation->start, operation->end, Error {OperationError, s.str() });
+                }
+
+                FunctionObject *operation_func = dynamic_cast<FunctionObject*>(type_def->object.get());
+
+                if (!operation_func)
+                {
+                    stringstream s;
+                    s << "No method on type '" << left->type << "' for '" << operation->operator_string << "' with type '" << right->type << "'";
+
+                    throw ErrorObject(operation->start, operation->end, Error {OperationError, s.str() });
+                }
+
+                return_value = CallFunction(operation_func, { { "this", Variable(left, Qualifier()) }, { "other", Variable(right, Qualifier()) } }, env, call_stack);
+            }
+            else
+            {
+                shared_ptr<Object> right = get<0>(Interpret({operation->right}, env, call_stack));
+
+                string func_name;
+
+                if (operation->operator_string == "!") func_name = "not";
+                else if (operation->operator_string == "-") func_name = "negative";
+                else if (operation->operator_string == "+") func_name = "positive";
+
+                FunctionObject *operation_func = dynamic_cast<FunctionObject*>(((TypeDefinitionObject*)right->type.type_definition.get())->GetMember(func_name)->object.get());
+
+                if (!operation_func)
+                {
+                    stringstream s;
+                    s << "No method on type '" << right->type << "' for '" << operation->operator_string << "'";
+
+                    throw ErrorObject(operation->start, operation->end, Error {OperationError, s.str() });
+                }
+
+                return_value = CallFunction(operation_func, { { "this", Variable(right, Qualifier()) } }, env, call_stack);
+            }
+        }
         else if (node->type == "GetVariable")
         {
             GetVariable *get_variable = (GetVariable*)node;
