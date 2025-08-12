@@ -54,7 +54,7 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of type" );
@@ -66,7 +66,7 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending >" );
@@ -78,10 +78,43 @@ TEST_CASE("Test Syntax Analyser Invalid Types")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of type" );
+    }
+}
+
+TEST_CASE("Test Syntax Analyser Qualifiers")
+{
+    string text = "public public static public static const;";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Qualifier" );
+    REQUIRE( ((Qualifier*)AST[0])->qualifiers == vector<string> { "public" } );
+
+    REQUIRE( AST[1]->type == "Qualifier" );
+    REQUIRE( ((Qualifier*)AST[1])->qualifiers == vector<string> { "public", "static" } );
+
+    REQUIRE( AST[2]->type == "Qualifier" );
+    REQUIRE( ((Qualifier*)AST[2])->qualifiers == vector<string> { "public", "static", "const" } );
+
+    text = "const static public;";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "Qualifier" );
+    REQUIRE_FALSE( ((Qualifier*)AST[0])->qualifiers == vector<string> { "const", "static", "public" } );
+
+    text = "public";
+
+    try
+    {
+        AST = get<0>(AnalyseSyntax(Tokenise(text)));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending of statement" );
     }
 }
 
@@ -131,7 +164,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending )" );
@@ -143,7 +176,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing argument" );
@@ -155,7 +188,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -167,7 +200,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -179,7 +212,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -191,7 +224,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -203,7 +236,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -215,7 +248,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of default argument" );
@@ -227,7 +260,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending )" );
@@ -239,7 +272,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Invalid character in code block" );
@@ -251,7 +284,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Invalid character in code block" );
@@ -263,7 +296,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -275,7 +308,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing return type" );
@@ -287,7 +320,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of code block" );
@@ -299,7 +332,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Invalid character in code block" );
@@ -311,7 +344,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending }" );
@@ -323,7 +356,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Invalid character in code block" );
@@ -335,7 +368,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending }" );
@@ -347,7 +380,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending }" );
@@ -359,7 +392,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending }" );
@@ -377,13 +410,23 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "Literal" );
     REQUIRE( ((Literal*)((AssignVariable*)AST[0])->value)->l_integer == 0 );
 
+    text = "static const int foo = 0;";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "static", "const" } );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((AssignVariable*)AST[0])->value->type == "Literal" );
+    REQUIRE( ((Literal*)((AssignVariable*)AST[0])->value)->l_integer == 0 );
+
     text = "int foo = 0"; // No ending semi-colon
 
     try
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending ;" );
@@ -395,7 +438,7 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing assignment value" );
@@ -407,7 +450,7 @@ TEST_CASE("Test Syntax Analyser Assign Variable")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of assignment" );
@@ -433,6 +476,19 @@ TEST_CASE("Test Syntax Analyser Define Function")
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
+    REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
+    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters.size() == 0 );
+    REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->content.size() == 0 );
+
+    text = "public static int foo() {}";
+    AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    AssignVariable a = *((AssignVariable*)AST[0]);
+
+    REQUIRE( AST[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)AST[0])->qualifier->qualifiers == vector<string> { "public", "static" } );
     REQUIRE( ((AssignVariable*)AST[0])->variable_type.name == "int" );
     REQUIRE( ((AssignVariable*)AST[0])->name == "foo" );
     REQUIRE( ((AssignVariable*)AST[0])->value->type == "CodeBlock" );
@@ -520,7 +576,7 @@ TEST_CASE("Test Syntax Analyser Function Call")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of function call" );
@@ -532,7 +588,7 @@ TEST_CASE("Test Syntax Analyser Function Call")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing end of function call" );
@@ -544,7 +600,7 @@ TEST_CASE("Test Syntax Analyser Function Call")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing argument" );
@@ -556,7 +612,7 @@ TEST_CASE("Test Syntax Analyser Function Call")
     {
         AnalyseSyntax(Tokenise(text));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         REQUIRE( node->error->type == SyntaxError );
         REQUIRE( node->error->text == "Missing ending )" );

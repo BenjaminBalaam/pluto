@@ -7,7 +7,7 @@
 
 using namespace std;
 
-vector<string> Keywords = { "if" };
+vector<string> Keywords = { "static", "const", "public", "protected", "private" };
 
 ostream& operator<<(ostream& os, const Token& t)
 {
@@ -166,7 +166,7 @@ ostream& operator<<(ostream& os, const Operator& o)
     return os << o.value;
 }
 
-tuple<string, int, double> GetTokenValue(Token* token)
+tuple<string, int, double> GetTokenValue(Token *token)
 {
     if (token->type == "Integer")
     {

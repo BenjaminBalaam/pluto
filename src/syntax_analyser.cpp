@@ -148,7 +148,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 }
                 else
                 {
-                    Type* type = new Type(name, content);
+                    Type *type = new Type(name, content);
 
                     type->start = start;
 
@@ -163,7 +163,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             {
                 Type return_type = Type("", vector<Type>());
 
-                Node* n = GetASTEnd(AST);
+                Node *n = GetASTEnd(AST);
 
                 AST.pop_back();
 
@@ -174,6 +174,15 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 else if (n->type == "GetVariable")
                 {
                     return_type = Type(((GetVariable*)n)->name, vector<Type>());
+                }
+
+                Qualifier *qualifier = new Qualifier({});
+
+                if (AST.size() != 0 && GetASTEnd(AST)->type == "Qualifier")
+                {
+                    qualifier = (Qualifier*)GetASTEnd(AST);
+
+                    AST.pop_back();
                 }
 
                 string name = get<0>(GetTokenValue(tokens[0]));
@@ -196,7 +205,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 CodeBlock *code_block = (CodeBlock*)data[0];
 
-                Node* node = new AssignVariable(return_type, name, code_block);
+                Node *node = new AssignVariable(qualifier, return_type, name, code_block);
 
                 node->start = start;
                 node->end = code_block->end;
@@ -207,7 +216,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             {
                 Type variable_type = Type("", vector<Type>());
 
-                Node* n = GetASTEnd(AST);
+                Node *n = GetASTEnd(AST);
 
                 AST.pop_back();
 
@@ -218,6 +227,15 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 else if (n->type == "GetVariable")
                 {
                     variable_type = Type(((GetVariable*)n)->name, vector<Type>());
+                }
+
+                Qualifier *qualifier = new Qualifier({});
+
+                if (AST.size() != 0 && GetASTEnd(AST)->type == "Qualifier")
+                {
+                    qualifier = (Qualifier*)GetASTEnd(AST);
+
+                    AST.pop_back();
                 }
 
                 string name = get<0>(GetTokenValue(tokens[0]));
@@ -243,7 +261,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 Node *content = data[0];
 
-                Node* node = new AssignVariable(variable_type, name, content);
+                Node *node = new AssignVariable(qualifier, variable_type, name, content);
 
                 node->start = start;
                 node->end = tokens[0]->end;
@@ -314,7 +332,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
             }
             else
             {
-                Node* node = new GetVariable(((Identifier*)tokens[0])->name);
+                Node *node = new GetVariable(((Identifier*)tokens[0])->name);
 
                 node->start = start;
                 node->end = tokens[0]->end;
@@ -525,7 +543,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 ThrowError(start, tokens[0]->end, Error { SyntaxError, "Invalid character in code block" });
             }
 
-            Node* node = new CodeBlock(return_type, parameters, content);
+            Node *node = new CodeBlock(return_type, parameters, content);
 
             node->start = start;
             node->end = end;
@@ -559,6 +577,58 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
             EraseFront(&tokens, 1);
         }
+        else if (tokens[0]->type == "Keyword")
+        {
+            if (get<0>(GetTokenValue(tokens[0])) == "public" || get<0>(GetTokenValue(tokens[0])) == "static" || get<0>(GetTokenValue(tokens[0])) == "const")
+            {
+                vector<string> qualifiers = {};
+
+                int end;
+
+                if (get<0>(GetTokenValue(tokens[0])) == "public")
+                {
+                    qualifiers.push_back("public");
+
+                    end = tokens[0]->end;
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing ending of statement"});
+                    }
+                }
+
+                if (get<0>(GetTokenValue(tokens[0])) == "static")
+                {
+                    qualifiers.push_back("static");
+
+                    end = tokens[0]->end;
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing ending of statement"});
+                    }
+                }
+
+                if (get<0>(GetTokenValue(tokens[0])) == "const")
+                {
+                    qualifiers.push_back("const");
+
+                    end = tokens[0]->end;
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing ending of statement"});
+                    }
+                }
+
+                Node *node = new Qualifier(qualifiers);
+
+                node->start = start;
+                node->end = end;
+
+                AST.push_back(node);
+            }
+        }
         else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";")
         {
             EraseFront(&tokens, 1);
@@ -584,9 +654,9 @@ Node* GetASTEnd(vector<Node*> AST)
     }
 }
 
-bool ShouldReturn(Token* current_token, vector<Token*> return_tokens)
+bool ShouldReturn(Token *current_token, vector<Token*> return_tokens)
 {
-    for (Token* ret_t : return_tokens)
+    for (Token *ret_t : return_tokens)
     {
         if (*ret_t == *current_token)
         {

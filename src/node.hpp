@@ -17,6 +17,7 @@ enum ARGUMENT_EXPANSION
 };
 
 class Parameter;
+class Qualifier;
 
 class Node
 {
@@ -80,11 +81,12 @@ class GetVariable : public Node
 class AssignVariable : public Node
 {
     public:
+        Qualifier *qualifier;
         Type variable_type;
         std::string name;
-        Node* value;
+        Node *value;
 
-        AssignVariable(Type variable_type, std::string name, Node* value);
+        AssignVariable(Qualifier *qualifier, Type variable_type, std::string name, Node *value);
 
         friend std::ostream& operator<<(std::ostream& os, const AssignVariable& data);
 };
@@ -111,6 +113,16 @@ class Parameter : public Node
         Parameter(Type type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
 
         friend std::ostream& operator<<(std::ostream& os, const Parameter& data);
+};
+
+class Qualifier : public Node
+{
+    public:
+        std::vector<std::string> qualifiers;
+
+        Qualifier(std::vector<std::string> qualifiers);
+
+        friend std::ostream& operator<<(std::ostream& os, const Qualifier& data);
 };
 
 #endif

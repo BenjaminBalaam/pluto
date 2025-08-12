@@ -44,6 +44,10 @@ ostream& operator<<(ostream& os, const Node& n)
     {
         return os << (Parameter&)n;
     }
+    else if (n.type == "Qualifier")
+    {
+        return os << (Qualifier&)n;
+    }
     
     return os;
 }
@@ -111,7 +115,7 @@ ostream& operator<<(ostream& os, const CodeBlock& data)
 
     os << ") {\n";
 
-    for (Node* node : data.content)
+    for (Node *node : data.content)
     {
         os << *node << "\n";
     }
@@ -131,14 +135,14 @@ ostream& operator<<(ostream& os, const GetVariable& data)
     return os << data.name;
 }
 
-AssignVariable::AssignVariable(Type variable_type, string name, Node* value) : variable_type(variable_type), name(name), value(value)
+AssignVariable::AssignVariable(Qualifier *qualifier, Type variable_type, string name, Node *value) : qualifier(qualifier), variable_type(variable_type), name(name), value(value)
 {
     this->type = "AssignVariable";
 }
 
 ostream& operator<<(ostream& os, const AssignVariable& data)
 {
-    return os << data.variable_type << " " << data.name << " = " << *data.value << ";";
+    return os << *data.qualifier << data.variable_type << " " << data.name << " = " << *data.value << ";";
 }
 
 FunctionCall::FunctionCall(string name, vector<Node*> arguments) : name(name), arguments(arguments)
@@ -150,7 +154,7 @@ ostream& operator<<(ostream& os, const FunctionCall& data)
 {
     os << data.name << "(";
 
-    for (Node* node : data.arguments)
+    for (Node *node : data.arguments)
     {
         os << *node << ", ";
     }
@@ -181,6 +185,21 @@ ostream& operator<<(ostream& os, const Parameter& data)
     if (data.default_argument)
     {
         os << " = " << *data.default_argument.value();
+    }
+
+    return os;
+}
+
+Qualifier::Qualifier(vector<string> qualifiers) : qualifiers(qualifiers)
+{
+    this->type = "Qualifier";
+}
+
+ostream& operator<<(ostream& os, const Qualifier& data)
+{
+    for (string qualifier : data.qualifiers)
+    {
+        os << qualifier << " ";
     }
 
     return os;

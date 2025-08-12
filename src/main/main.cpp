@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
     {
         AST = get<0>(AnalyseSyntax(tokens));
     }
-    catch (Node* node)
+    catch (Node *node)
     {
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
 
-    for (Node* node : AST)
+    for (Node *node : AST)
     {
         cout << *node << "\n";
     }

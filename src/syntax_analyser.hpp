@@ -11,7 +11,7 @@ std::pair<std::vector<Node*>, std::vector<Token*>> AnalyseSyntax(std::vector<Tok
 
 Node* GetASTEnd(std::vector<Node*> AST);
 
-bool ShouldReturn(Token* current_token, std::vector<Token*> return_tokens);
+bool ShouldReturn(Token *current_token, std::vector<Token*> return_tokens);
 
 bool EraseFront(std::vector<Token*> *tokens, int length);
 

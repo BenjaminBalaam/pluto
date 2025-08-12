@@ -173,12 +173,12 @@ TEST_CASE("Test Lexer Identifiers")
 
 TEST_CASE("Test Lexer Keywords")
 {
-    string text = "if";
+    string text = "static";
 
     vector<Token*> tokens = Tokenise(text);
 
     REQUIRE( tokens[0]->type == "Keyword" );
-    REQUIRE( get<0>(GetTokenValue(tokens[0])) == "if" );
+    REQUIRE( get<0>(GetTokenValue(tokens[0])) == "static" );
 }
 
 TEST_CASE("Test Lexer Control Characters")
