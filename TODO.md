@@ -2,8 +2,6 @@
 
 ### Small Changes
 
--   [ ] Create tests for syntax_analyser for when AnalyseSyntax produces no AST (invalid token etc) including recursively (can only be done when all structures implemented)
-
 ### Features
 
 -   [ ] Add selection statements
