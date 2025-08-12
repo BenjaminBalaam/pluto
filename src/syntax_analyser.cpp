@@ -812,6 +812,83 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 AST.push_back(node);
             }
+            else if (get<0>(GetTokenValue(tokens[0])) == "class")
+            {
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (tokens[0]->type != "Identifier")
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in class definition"});
+                }
+
+                string name = ((Identifier*)tokens[0])->name;
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                string interface = "";
+
+                if (tokens[0]->type == "Control" && ((Control*)tokens[0])->value == ":")
+                {
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    if (tokens[0]->type != "Identifier")
+                    {
+                        ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in class definition"});
+                    }
+
+                    interface = ((Identifier*)tokens[0])->name;
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+                }
+
+                if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "{")
+                {
+                    ThrowError(start, tokens[0]->end, Error {SyntaxError, "Invalid character in class definition"});
+                }
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { { { new Bracket("}"), false } }, false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending }"});
+                }
+
+                for (Node *node : data)
+                {
+                    if (node->type != "AssignVariable" && node->type != "StatementEnd")
+                    {
+                        ThrowError(node->start, node->end, Error {SyntaxError, "Expected declaration"});
+                    }
+                }
+
+                ClassDefinition *class_definition = new ClassDefinition(name, interface, data);
+
+                class_definition->start = start;
+                class_definition->end = tokens[0]->end;
+
+                AST.push_back(class_definition);
+
+                EraseFront(&tokens, 1);
+            }
             else if (get<0>(GetTokenValue(tokens[0])) == "if")
             {
                 if (EraseFront(&tokens, 1))

@@ -138,6 +138,18 @@ class FunctionCall : public Node
         friend std::ostream &operator<<(std::ostream &os, const FunctionCall &data);
 };
 
+class ClassDefinition : public Node
+{
+    public:
+        std::string name;
+        std::string interface;
+        std::vector<Node*> body;
+        
+        ClassDefinition(std::string name, std::string interface, std::vector<Node*> body);
+
+        friend std::ostream &operator<<(std::ostream &os, const ClassDefinition &data);
+};
+
 class IfStatement : public Node
 {
     public:

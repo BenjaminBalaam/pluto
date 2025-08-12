@@ -284,6 +284,32 @@ ostream &operator<<(ostream &os, const FunctionCall &data)
     return os << ")";
 }
 
+ClassDefinition::ClassDefinition(string name, string interface, vector<Node*> body) : name(name), interface(interface), body(body)
+{
+    this->type = "ClassDefinition";
+}
+
+ostream &operator<<(ostream &os, const ClassDefinition &data)
+{
+    if (data.interface == "")
+    {
+        os << "class " << data.name << " {\n";
+    }
+    else
+    {
+        os << "class " << data.name << " : " << data.interface << " {\n";
+    }
+
+    for (Node *node : data.body)
+    {
+        os << *node << "\n";
+    }
+
+    os << "}";
+
+    return os;
+}
+
 IfStatement::IfStatement(Node *if_expression, CodeBlock *if_code_block, vector<Node*> else_if_expressions, vector<CodeBlock*> else_if_code_blocks, CodeBlock *else_code_block) : if_expression(if_expression), if_code_block(if_code_block), else_if_expressions(else_if_expressions), else_if_code_blocks(else_if_code_blocks), else_code_block(else_code_block)
 {
     this->type = "IfStatement";

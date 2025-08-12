@@ -856,6 +856,148 @@ TEST_CASE("Test Syntax Analyser Define Function")
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].argument_expansion == Array );
 }
 
+TEST_CASE("Test Syntax Analyser Class Definition")
+{
+    string text = "class foo { int test; } class foo : bar { int test; }";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "ClassDefinition" );
+    REQUIRE( ((ClassDefinition*)AST[0])->name == "foo" );
+    REQUIRE( ((ClassDefinition*)AST[0])->interface == "" );
+    REQUIRE( ((ClassDefinition*)AST[0])->body.size() == 2 );
+    REQUIRE( ((ClassDefinition*)AST[0])->body[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[0])->body[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[0])->body[0])->name == "test" );
+
+    REQUIRE( AST[1]->type == "ClassDefinition" );
+    REQUIRE( ((ClassDefinition*)AST[1])->name == "foo" );
+    REQUIRE( ((ClassDefinition*)AST[1])->interface == "bar" );
+    REQUIRE( ((ClassDefinition*)AST[1])->body.size() == 2 );
+    REQUIRE( ((ClassDefinition*)AST[1])->body[0]->type == "AssignVariable" );
+    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[1])->body[0])->variable_type.name == "int" );
+    REQUIRE( ((AssignVariable*)((ClassDefinition*)AST[1])->body[0])->name == "test" );
+
+    text = "class";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "class 0";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in class definition" );
+    }
+
+    text = "class foo";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "class foo :";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "class foo : 0";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in class definition" );
+    }
+
+    text = "class foo : bar";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "class foo : bar 0";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Invalid character in class definition" );
+    }
+
+    text = "class foo : bar {";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing end of statement" );
+    }
+
+    text = "class foo : bar { test";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Missing ending }" );
+    }
+
+    text = "class foo : bar { a + b; }";
+
+    try
+    {
+        AnalyseSyntax(Tokenise(text));
+    }
+    catch (Node *node)
+    {
+        REQUIRE( node->error->type == SyntaxError );
+        REQUIRE( node->error->text == "Expected declaration" );
+    }
+}
+
 TEST_CASE("Test Syntax Analyser If Statements")
 {
     string text = "if (exp) {} if (exp) {} else {} if (exp1) {} else if (exp2) {} if (exp1) {} else if (exp2) {} else if (exp3) {} else {}";
