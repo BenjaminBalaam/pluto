@@ -106,7 +106,7 @@ ostream& operator<<(ostream& os, const CodeBlock& data)
 
     for (Node* node : data.content)
     {
-        os << node << "\n";
+        os << *node << "\n";
     }
 
     os << "}\n";

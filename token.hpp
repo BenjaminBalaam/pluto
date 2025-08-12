@@ -20,6 +20,8 @@ class Token
         int end;
 
         friend std::ostream& operator<<(std::ostream& os, const Token& t);
+
+        bool operator==(const Token& other);
 };
 
 class Integer : public Token

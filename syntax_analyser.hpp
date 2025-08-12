@@ -7,9 +7,11 @@
 #include "token.hpp"
 #include "node.hpp"
 
-std::pair<std::vector<Node*>, std::vector<Token*>> AnalyseSyntax(std::vector<Token*> tokens, std::pair<Token*, bool> return_flags = std::pair<Token*, bool>(NULL, false));
+std::pair<std::vector<Node*>, std::vector<Token*>> AnalyseSyntax(std::vector<Token*> tokens, std::pair<std::vector<Token*>, bool> return_flags = { {}, false });
 
 Node* GetASTEnd(std::vector<Node*> AST);
+
+bool ShouldReturn(Token* current_token, std::vector<Token*> return_tokens);
 
 void EraseFront(std::vector<Token*> *tokens, int length);
 

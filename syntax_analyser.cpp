@@ -8,13 +8,13 @@
 
 using namespace std;
 
-pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<Token*, bool> return_flags)
+pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<vector<Token*>, bool> return_flags)
 {
     vector<Node*> AST = vector<Node*>();
 
     while (tokens.size() != 0)
     {
-        if (get<0>(return_flags) == tokens[0] || (get<1>(return_flags) && AST.size() > 0))
+        if (get<0>(return_flags).size() != 0 && ShouldReturn(tokens[0], get<0>(return_flags)) || (AST.size() != 0 && get<1>(return_flags)))
         {
             return {AST, tokens};
         }
@@ -65,7 +65,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
                 {
                     vector<Node*> data;
 
-                    tie(data, tokens) = AnalyseSyntax(tokens, { NULL, true });
+                    tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Operator(">") }, false });
 
                     if (data.size() == 0)
                     {
@@ -141,6 +141,17 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
 
                 string name = get<0>(GetTokenValue(tokens[0]));
 
+                if (!(tokens[1]->type == "Bracket" && get<0>(GetTokenValue(tokens[1])) == "("))
+                {
+                    Node *node = new Node();
+                    node->start = start;
+                    node->end = tokens[1]->end;
+
+                    node->error = Error {SyntaxError, "Invalid character in function definition"};
+
+                    throw node;
+                }
+
                 EraseFront(&tokens, 2);
 
                 vector<Parameter> parameters = vector<Parameter>();
@@ -154,7 +165,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
 
                     vector<Node*> data;
                     
-                    tie(data, tokens) = AnalyseSyntax(tokens, { NULL, true });
+                    tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
 
                     if (data.size() != 0 && (data[0]->type == "Type" || data[0]->type == "GetVariable"))
                     {
@@ -198,7 +209,7 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
 
                                 vector<Node*> data;
 
-                                tie(data, tokens) = AnalyseSyntax(tokens, { NULL, true });
+                                tie(data, tokens) = AnalyseSyntax(tokens, { { new Control(","), new Bracket(")") }, false });
 
                                 if (data.size() == 0)
                                 {
@@ -254,7 +265,20 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<To
                 {
                     EraseFront(&tokens, 2);
 
-                    tie(content, tokens) = AnalyseSyntax(tokens, { new Bracket("}"), false });
+                    int file_end = tokens[tokens.size() - 1]->end;
+
+                    tie(content, tokens) = AnalyseSyntax(tokens, { { new Bracket("}") }, false });
+
+                    if (tokens.size() == 0)
+                    {
+                        Node *node = new Node();
+                        node->start = start;
+                        node->end = file_end;
+
+                        node->error = Error {SyntaxError, "Missing ending }"};
+
+                        throw node;
+                    }
 
                     end = tokens[0]->end;
 
@@ -317,6 +341,19 @@ Node* GetASTEnd(vector<Node*> AST)
     {
         return NULL;
     }
+}
+
+bool ShouldReturn(Token* current_token, vector<Token*> return_tokens)
+{
+    for (Token* ret_t : return_tokens)
+    {
+        if (*ret_t == *current_token)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void EraseFront(vector<Token*> *tokens, int length)

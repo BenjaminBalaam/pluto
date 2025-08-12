@@ -47,6 +47,45 @@ ostream& operator<<(ostream& os, const Token& t)
     return os;
 }
 
+bool Token::operator==(const Token& other)
+{
+    if (this->type != other.type)
+    {
+        return false;
+    }
+
+    if (this->type == "Keyword")
+    {
+        if (((Keyword*)this)->name != ((Keyword&)other).name)
+        {
+            return false;
+        }
+    }
+    else if (this->type == "Control")
+    {
+        if (((Control*)this)->value != ((Control&)other).value)
+        {
+            return false;
+        }
+    }
+    else if (this->type == "Bracket")
+    {
+        if (((Bracket*)this)->value != ((Bracket&)other).value)
+        {
+            return false;
+        }
+    }
+    else if (this->type == "Operator")
+    {
+        if (((Operator*)this)->value != ((Operator&)other).value)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 Integer::Integer(int number) : number(number)
 {
     this->type = "Integer";
