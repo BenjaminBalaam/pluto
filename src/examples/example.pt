@@ -1,8 +1,1 @@
-string h = "help";
-
-string output = "";
-
-for (int i = 0; i < 10; i += 1)
-{
-    output += h;
-}
+int a = random();

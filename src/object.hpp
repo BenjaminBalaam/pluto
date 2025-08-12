@@ -253,9 +253,11 @@ class ErrorObject : public Object
         ~ErrorObject();
 };
 
-void InitialiseInterpreterData();
+std::shared_ptr<Environment> InitialiseInterpreterData();
 
 extern std::shared_ptr<Environment> Types;
+
+std::map<std::string, Variable> CreateBuiltinFunctions();
 
 Member CreateMethod(std::shared_ptr<Object> definition, std::vector<Parameter> parameters, std::function<std::shared_ptr<Object>(std::shared_ptr<Environment>)> function);
 

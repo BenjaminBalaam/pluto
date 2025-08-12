@@ -7,6 +7,7 @@
 #include <optional>
 #include <memory>
 #include <cmath>
+#include <ctime>
 
 #include "object.hpp"
 #include "node.hpp"
@@ -398,7 +399,7 @@ ErrorObject::~ErrorObject()
 
 }
 
-void InitialiseInterpreterData()
+shared_ptr<Environment> InitialiseInterpreterData()
 {
     Types->variables = {
         { "void", Variable(shared_ptr<Object>(new TypeDefinitionObject("void", {})), Qualifier()) },
@@ -416,9 +417,53 @@ void InitialiseInterpreterData()
     CreateStringMethods();
     CreateTypeMethods();
     CreateFunctionMethods();
+
+    return shared_ptr<Environment>(new Environment(Types, CreateBuiltinFunctions()));
 }
 
 shared_ptr<Environment> Types = std::shared_ptr<Environment>(new Environment(NULL, std::map<std::string, Variable> {}));
+
+map<string, Variable> CreateBuiltinFunctions()
+{
+    auto print = [](shared_ptr<Environment> env)
+    {
+        cout << ((StringObject*)(env->Get("value")->object.get()))->value;
+        return shared_ptr<Object>(new VoidObject());
+    };
+
+    auto input = [](shared_ptr<Environment> env)
+    {
+        string input;
+        cin >> input;
+        return shared_ptr<Object>(new StringObject(input));
+    };
+
+    auto random = [](shared_ptr<Environment> env)
+    {
+        int seed = ((IntObject*)(env->Get("seed")->object.get()))->value;
+        if (seed < 0)
+        {
+            seed = time(NULL);
+        }
+
+        srand(seed);
+
+        shared_ptr<Object> random_number = shared_ptr<Object>(new IntObject(rand()));
+
+        return random_number;
+    };
+
+    Literal *random_default_arg = new Literal();
+    random_default_arg->l_integer = -1;
+
+    map<string, Variable> functions = {
+        { "print", Variable(shared_ptr<Object>(new FunctionObject(Type(Types->Get("void")->object), {Parameter(Type(Types->Get("string")->object), "value", optional<Node*>(), None)}, print)), Qualifier()) },
+        { "input", Variable(shared_ptr<Object>(new FunctionObject(Type(Types->Get("string")->object), {}, input)), Qualifier()) },
+        { "random", Variable(shared_ptr<Object>(new FunctionObject(Type(Types->Get("int")->object), {Parameter(Type(Types->Get("int")->object), "seed", optional<Node*>(random_default_arg), None)}, random)), Qualifier()) },
+    };
+
+    return functions;
+}
 
 Member CreateMethod(shared_ptr<Object> definition, vector<Parameter> parameters, function<shared_ptr<Object>(shared_ptr<Environment>)> function)
 {

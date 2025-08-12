@@ -73,10 +73,9 @@ int main(int argc, char *argv[])
         return ThrowError(*node->error, node->start, node->end, line_numbers, lines);
     }
     
-    InitialiseInterpreterData();
+    shared_ptr<Environment> env = InitialiseInterpreterData();
 
     shared_ptr<Object> result;
-    shared_ptr<Environment> env(new Environment(Types, {}));
 
     try
     {
@@ -88,7 +87,7 @@ int main(int argc, char *argv[])
     }
 
 
-    cout << "Environment:\n" << *env << "\n\n";
+    cout << "\nEnvironment:\n" << *env << "\n\n";
     
     if (result)
     {
