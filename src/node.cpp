@@ -14,7 +14,7 @@ Node::Node()
     this->type = "";
 }
 
-ostream& operator<<(ostream& os, const Node& n)
+ostream &operator<<(ostream &os, const Node &n)
 {
     if (n.type == "Literal")
     {
@@ -57,7 +57,7 @@ Type::Type(string name, bool is_array, vector<Type> content) : name(name), is_ar
     this->type = "Type";
 }
 
-ostream& operator<<(ostream& os, const Type& data)
+ostream &operator<<(ostream &os, const Type &data)
 {
     if (data.is_array)
     {
@@ -83,7 +83,7 @@ Parameter::Parameter(Type type_data, string name, optional<Node*> default_argume
     this->type = "Parameter";
 }
 
-ostream& operator<<(ostream& os, const Parameter& data)
+ostream &operator<<(ostream &os, const Parameter &data)
 {
     if (data.argument_expansion == None)
     {
@@ -111,7 +111,7 @@ Qualifier::Qualifier(vector<string> qualifiers) : qualifiers(qualifiers)
     this->type = "Qualifier";
 }
 
-ostream& operator<<(ostream& os, const Qualifier& data)
+ostream &operator<<(ostream &os, const Qualifier &data)
 {
     for (string qualifier : data.qualifiers)
     {
@@ -126,7 +126,7 @@ Literal::Literal()
     this->type = "Literal";
 }
 
-ostream& operator<<(ostream& os, const Literal& data)
+ostream &operator<<(ostream &os, const Literal &data)
 {
     if (data.l_integer)
     {
@@ -149,7 +149,7 @@ CodeBlock::CodeBlock(optional<Type> return_type, vector<Parameter> parameters, v
     this->type = "CodeBlock";
 }
 
-ostream& operator<<(ostream& os, const CodeBlock& data)
+ostream &operator<<(ostream &os, const CodeBlock &data)
 {
     if (data.return_type)
     {
@@ -182,7 +182,7 @@ Operation::Operation(string operator_string, Node *left, Node *right) : operator
     this->type = "Operation";
 }
 
-ostream& operator<<(ostream& os, const Operation& data)
+ostream &operator<<(ostream &os, const Operation &data)
 {
     return os << *data.left << data.operator_string << *data.right;
 }
@@ -192,7 +192,7 @@ GetVariable::GetVariable(string name) : name(name)
     this->type = "GetVariable";
 }
 
-ostream& operator<<(ostream& os, const GetVariable& data)
+ostream &operator<<(ostream &os, const GetVariable &data)
 {
     return os << data.name;
 }
@@ -202,7 +202,7 @@ AssignVariable::AssignVariable(Qualifier *qualifier, Type variable_type, string 
     this->type = "AssignVariable";
 }
 
-ostream& operator<<(ostream& os, const AssignVariable& data)
+ostream &operator<<(ostream &os, const AssignVariable &data)
 {
     return os << *data.qualifier << data.variable_type << " " << data.name << " = " << *data.value << ";";
 }
@@ -212,7 +212,7 @@ FunctionCall::FunctionCall(string name, vector<Node*> arguments) : name(name), a
     this->type = "FunctionCall";
 }
 
-ostream& operator<<(ostream& os, const FunctionCall& data)
+ostream &operator<<(ostream &os, const FunctionCall &data)
 {
     os << data.name << "(";
 

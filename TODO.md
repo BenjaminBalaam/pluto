@@ -3,6 +3,7 @@
 ### Small Changes
 
 -   [ ] Add order of operations rules (and fix tests accordingly)
+-   [ ] Some AnalyseSyntax calls (such as for operations) need the previous return tokens to be passed to them
 -   [ ] Redo assignment and declaration of variables
 -   [ ] Make semicolons compulsory
 -   [ ] Allow user to end assignment or function definitions with no body with a semicolon

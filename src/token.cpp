@@ -9,7 +9,7 @@ using namespace std;
 
 vector<string> Keywords = { "static", "const", "public", "protected", "private" };
 
-ostream& operator<<(ostream& os, const Token& t)
+ostream &operator<<(ostream &os, const Token &t)
 {
     if (t.type == "Integer")
     {
@@ -47,7 +47,7 @@ ostream& operator<<(ostream& os, const Token& t)
     return os;
 }
 
-bool Token::operator==(const Token& other)
+bool Token::operator==(const Token &other)
 {
     if (this->type != other.type)
     {
@@ -77,6 +77,11 @@ bool Token::operator==(const Token& other)
     }
     else if (this->type == "Operator")
     {
+        if (((Operator*)this)->value == "")
+        {
+            return true;
+        }
+
         if (((Operator*)this)->value != ((Operator&)other).value)
         {
             return false;
@@ -91,7 +96,7 @@ Integer::Integer(int number) : number(number)
     this->type = "Integer";
 }
 
-ostream& operator<<(ostream& os, const Integer& i)
+ostream &operator<<(ostream &os, const Integer &i)
 {
     return os << i.number;
 }
@@ -101,7 +106,7 @@ Float::Float(double number) : number(number)
     this->type = "Float";
 }
 
-ostream& operator<<(ostream& os, const Float& f)
+ostream &operator<<(ostream &os, const Float &f)
 {
     return os << f.number;
 }
@@ -111,7 +116,7 @@ String::String(string content) : content(content)
     this->type = "String";
 }
 
-ostream& operator<<(ostream& os, const String& s)
+ostream &operator<<(ostream &os, const String &s)
 {
     return os << "\"" << s.content << "\"";
 }
@@ -121,7 +126,7 @@ Identifier::Identifier(string name) : name(name)
     this->type = "Identifier";
 }
 
-ostream& operator<<(ostream& os, const Identifier& id)
+ostream &operator<<(ostream &os, const Identifier &id)
 {
     return os << id.name;
 }
@@ -131,7 +136,7 @@ Keyword::Keyword(string name) : name(name)
     this->type = "Keyword";
 }
 
-ostream& operator<<(ostream& os, const Keyword& k)
+ostream &operator<<(ostream &os, const Keyword &k)
 {
     return os << k.name;
 }
@@ -141,7 +146,7 @@ Control::Control(string value) : value(value)
     this->type = "Control";
 }
 
-ostream& operator<<(ostream& os, const Control& c)
+ostream &operator<<(ostream &os, const Control &c)
 {
     return os << c.value;
 }
@@ -151,7 +156,7 @@ Bracket::Bracket(string value) : value(value)
     this->type = "Bracket";
 }
 
-ostream& operator<<(ostream& os, const Bracket& b)
+ostream &operator<<(ostream &os, const Bracket &b)
 {
     return os << b.value;
 }
@@ -161,7 +166,7 @@ Operator::Operator(string value) : value(value)
     this->type = "Operator";
 }
 
-ostream& operator<<(ostream& os, const Operator& o)
+ostream &operator<<(ostream &os, const Operator &o)
 {
     return os << o.value;
 }

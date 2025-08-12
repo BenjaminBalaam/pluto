@@ -19,9 +19,9 @@ class Token
         int start;
         int end;
 
-        friend std::ostream& operator<<(std::ostream& os, const Token& t);
+        friend std::ostream &operator<<(std::ostream &os, const Token &t);
 
-        bool operator==(const Token& other);
+        bool operator==(const Token &other);
 };
 
 class Integer : public Token
@@ -31,7 +31,7 @@ class Integer : public Token
 
         Integer(int number);
 
-        friend std::ostream& operator<<(std::ostream& os, const Integer& i);
+        friend std::ostream &operator<<(std::ostream &os, const Integer &i);
 };
 
 class Float : public Token
@@ -41,7 +41,7 @@ class Float : public Token
 
         Float(double number);
 
-        friend std::ostream& operator<<(std::ostream& os, const Float& f);
+        friend std::ostream &operator<<(std::ostream &os, const Float &f);
 };
 
 class String : public Token
@@ -51,7 +51,7 @@ class String : public Token
 
         String(std::string content);
 
-        friend std::ostream& operator<<(std::ostream& os, const String& s);
+        friend std::ostream &operator<<(std::ostream &os, const String &s);
 };
 
 class Identifier : public Token
@@ -61,7 +61,7 @@ class Identifier : public Token
         
         Identifier(std::string name);
 
-        friend std::ostream& operator<<(std::ostream& os, const Identifier& id);
+        friend std::ostream &operator<<(std::ostream &os, const Identifier &id);
 };
 
 class Keyword : public Token
@@ -71,7 +71,7 @@ class Keyword : public Token
 
         Keyword(std::string name);
 
-        friend std::ostream& operator<<(std::ostream& os, const Keyword& k);
+        friend std::ostream &operator<<(std::ostream &os, const Keyword &k);
 };
 
 class Control : public Token
@@ -81,7 +81,7 @@ class Control : public Token
 
         Control(std::string value);
 
-        friend std::ostream& operator<<(std::ostream& os, const Control& c);
+        friend std::ostream &operator<<(std::ostream &os, const Control &c);
 };
 
 class Bracket : public Token
@@ -91,7 +91,7 @@ class Bracket : public Token
 
         Bracket(std::string value);
 
-        friend std::ostream& operator<<(std::ostream& os, const Bracket& b);
+        friend std::ostream &operator<<(std::ostream &os, const Bracket &b);
 };
 
 class Operator : public Token
@@ -101,7 +101,7 @@ class Operator : public Token
 
         Operator(std::string value);
 
-        friend std::ostream& operator<<(std::ostream& os, const Operator& o);
+        friend std::ostream &operator<<(std::ostream &os, const Operator &o);
 };
 
 std::tuple<std::string, int, double> GetTokenValue(Token *token);

@@ -1,34 +1,56 @@
-All statements must end in ;
-
-### Literal
-
-integer
-float
-string
+All statements must end in `;`
 
 ### Type
 
-name
-name<type, ...>
-name[]
+`name`
+`name<type, ...>`
+`name[]`
+
+### Literal
+
+`integer`
+`float`
+`string`
 
 ### Code Block
 
-(type <expansion>name <default>, ...) { STATEMENTS }
-{ STATEMENTS }
+`(type <expansion>name <default>, ...) { STATEMENTS }`
+`{ STATEMENTS }`
 
-### Assign Variable
+### Operations
 
-qualifiers type name;
-qualifiers type name = EXPRESSION;
+Precendence of Operations
+
+1. `^`
+
+2. `*, /, $, %`
+
+3. `+, -`
+
+4. `==, !=, <=, >=, <, >`
+
+5. `!`
+
+6. `&`
+
+7. `|`
+
+8. `=, +=, -=, *=, /=`
 
 ### Get Variable
 
-### Define Function
+`name`
 
-qualifiers return_type name(type <expansion>name <default>, ...);
-qualifiers return_type name(type <expansion>name <default>, ...) { STATEMENTS }
+### Assign Variable
+
+`qualifiers type name;`
+`qualifiers type name = EXPRESSION;`
 
 ### Function Call
 
-name(EXPRESSION, ...);
+`name(EXPRESSION, ...);`
+
+### Define Function
+
+`qualifiers return_type name(type <expansion>name <default>, ...);`
+`qualifiers return_type name(type <expansion>name <default>, ...) { STATEMENTS }`

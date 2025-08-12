@@ -407,7 +407,7 @@ TEST_CASE("Test Syntax Analyser Invalid Code Block")
 
 TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of operations
 {
-    string text = "!foo; a >= b; a < b; a + b == c - d;";
+    string text = "!foo; bar = a; a >= b; a < b; a + b == c - d;";
     vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
 
     REQUIRE( AST[0]->type == "Operation" );
@@ -417,33 +417,40 @@ TEST_CASE("Test Syntax Analyser Operation") // All needs to change for order of 
     REQUIRE( ((GetVariable*)((Operation*)AST[0])->right)->name == "foo" );
 
     REQUIRE( AST[1]->type == "Operation" );
-    REQUIRE( ((Operation*)AST[1])->operator_string == ">=" );
+    REQUIRE( ((Operation*)AST[1])->operator_string == "=" );
     REQUIRE( ((Operation*)AST[1])->left->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)AST[1])->left)->name == "a" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[1])->left)->name == "bar" );
     REQUIRE( ((Operation*)AST[1])->right->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)AST[1])->right)->name == "b" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[1])->right)->name == "a" );
 
     REQUIRE( AST[2]->type == "Operation" );
-    REQUIRE( ((Operation*)AST[2])->operator_string == "<" );
+    REQUIRE( ((Operation*)AST[2])->operator_string == ">=" );
     REQUIRE( ((Operation*)AST[2])->left->type == "GetVariable" );
     REQUIRE( ((GetVariable*)((Operation*)AST[2])->left)->name == "a" );
     REQUIRE( ((Operation*)AST[2])->right->type == "GetVariable" );
     REQUIRE( ((GetVariable*)((Operation*)AST[2])->right)->name == "b" );
 
     REQUIRE( AST[3]->type == "Operation" );
-    REQUIRE( ((Operation*)AST[3])->operator_string == "+" );
+    REQUIRE( ((Operation*)AST[3])->operator_string == "<" );
     REQUIRE( ((Operation*)AST[3])->left->type == "GetVariable" );
     REQUIRE( ((GetVariable*)((Operation*)AST[3])->left)->name == "a" );
-    REQUIRE( ((Operation*)AST[3])->right->type == "Operation" );
-    REQUIRE( ((Operation*)((Operation*)AST[3])->right)->operator_string == "==" );
-    REQUIRE( ((Operation*)((Operation*)AST[3])->right)->left->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)((Operation*)AST[3])->right)->left)->name == "b" );
-    REQUIRE( ((Operation*)((Operation*)AST[3])->right)->right->type == "Operation" );
-    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->operator_string == "-" );
-    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->left->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->left)->name == "c" );
-    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->right->type == "GetVariable" );
-    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[3])->right)->right)->right)->name == "d" );
+    REQUIRE( ((Operation*)AST[3])->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[3])->right)->name == "b" );
+
+    REQUIRE( AST[4]->type == "Operation" );
+    REQUIRE( ((Operation*)AST[4])->operator_string == "+" );
+    REQUIRE( ((Operation*)AST[4])->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)AST[4])->left)->name == "a" );
+    REQUIRE( ((Operation*)AST[4])->right->type == "Operation" );
+    REQUIRE( ((Operation*)((Operation*)AST[4])->right)->operator_string == "==" );
+    REQUIRE( ((Operation*)((Operation*)AST[4])->right)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)AST[4])->right)->left)->name == "b" );
+    REQUIRE( ((Operation*)((Operation*)AST[4])->right)->right->type == "Operation" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->operator_string == "-" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->left->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->left)->name == "c" );
+    REQUIRE( ((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->right->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((Operation*)((Operation*)((Operation*)AST[4])->right)->right)->right)->name == "d" );
 
     text = "> a";
 

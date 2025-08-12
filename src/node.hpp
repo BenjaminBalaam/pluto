@@ -27,7 +27,7 @@ class Node
 
         Node();
 
-        friend std::ostream& operator<<(std::ostream& os, const Node& n);
+        friend std::ostream &operator<<(std::ostream &os, const Node &n);
 };
 
 class Type : public Node
@@ -39,7 +39,7 @@ class Type : public Node
 
         Type(std::string name, bool is_array, std::vector<Type> content);
 
-        friend std::ostream& operator<<(std::ostream& os, const Type& data);
+        friend std::ostream &operator<<(std::ostream &os, const Type &data);
 };
 
 class Parameter : public Node
@@ -52,7 +52,7 @@ class Parameter : public Node
 
         Parameter(Type type_data, std::string name, std::optional<Node*> default_argument, ARGUMENT_EXPANSION argument_expansion);
 
-        friend std::ostream& operator<<(std::ostream& os, const Parameter& data);
+        friend std::ostream &operator<<(std::ostream &os, const Parameter &data);
 };
 
 class Qualifier : public Node
@@ -62,7 +62,7 @@ class Qualifier : public Node
 
         Qualifier(std::vector<std::string> qualifiers);
 
-        friend std::ostream& operator<<(std::ostream& os, const Qualifier& data);
+        friend std::ostream &operator<<(std::ostream &os, const Qualifier &data);
 };
 
 class Literal : public Node
@@ -74,7 +74,7 @@ class Literal : public Node
 
         Literal();
 
-        friend std::ostream& operator<<(std::ostream& os, const Literal& data);
+        friend std::ostream &operator<<(std::ostream &os, const Literal &data);
 };
 
 class CodeBlock : public Node
@@ -86,7 +86,7 @@ class CodeBlock : public Node
 
         CodeBlock(std::optional<Type> return_type, std::vector<Parameter> parameters, std::vector<Node*> content);
 
-        friend std::ostream& operator<<(std::ostream& os, const CodeBlock& data);
+        friend std::ostream &operator<<(std::ostream &os, const CodeBlock &data);
 };
 
 class Operation : public Node
@@ -98,7 +98,7 @@ class Operation : public Node
 
         Operation(std::string operator_string, Node *left, Node *right);
 
-        friend std::ostream& operator<<(std::ostream& os, const Operation& data);
+        friend std::ostream &operator<<(std::ostream &os, const Operation &data);
 };
 
 class GetVariable : public Node
@@ -108,7 +108,7 @@ class GetVariable : public Node
 
         GetVariable(std::string name);
 
-        friend std::ostream& operator<<(std::ostream& os, const GetVariable& data);
+        friend std::ostream &operator<<(std::ostream &os, const GetVariable &data);
 };
 
 class AssignVariable : public Node
@@ -121,7 +121,7 @@ class AssignVariable : public Node
 
         AssignVariable(Qualifier *qualifier, Type variable_type, std::string name, Node *value);
 
-        friend std::ostream& operator<<(std::ostream& os, const AssignVariable& data);
+        friend std::ostream &operator<<(std::ostream &os, const AssignVariable &data);
 };
 
 class FunctionCall : public Node
@@ -132,7 +132,7 @@ class FunctionCall : public Node
 
         FunctionCall(std::string name, std::vector<Node*> arguments);
 
-        friend std::ostream& operator<<(std::ostream& os, const FunctionCall& data);
+        friend std::ostream &operator<<(std::ostream &os, const FunctionCall &data);
 };
 
 #endif

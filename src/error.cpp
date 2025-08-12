@@ -8,7 +8,7 @@
 
 using namespace std;
 
-ostream& operator<<(ostream& os, const ERROR_TYPE& e)
+ostream &operator<<(ostream &os, const ERROR_TYPE &e)
 {
     switch (e)
     {
