@@ -409,35 +409,6 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
                 
                 tie(operation, tokens) = ProcessOperations(return_flags, start, tokens, left);
 
-                // string operator_string = get<0>(GetTokenValue(tokens[0]));
-
-                // if (EraseFront(&tokens, 1))
-                // {
-                //     ThrowError(start, file_end, Error {SyntaxError, "Missing right expression for operation"});
-                // }
-
-                // vector<Node*> content;
-
-                // tie(content, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Control(";") }, get<0>(return_flags)), false });
-
-                // if (tokens.size() == 0)
-                // {
-                //     ThrowError(start, file_end, Error {SyntaxError, "Missing ending ;"});
-                // }
-
-                // if (content.size() == 0)
-                // {
-                //     ThrowError(start, tokens[0]->end, Error {SyntaxError, "Missing right expression for operation"});
-                // }
-
-                // Node *right = content[0];
-
-                // Operation *operation = new Operation(operator_string, left, right);
-
-                // operation->start = start;
-
-                // operation->end = tokens[0]->end;
-
                 AST.push_back(operation);
         }
         else if (tokens[0]->type == "Identifier")
@@ -839,6 +810,163 @@ pair<vector<Node*>, vector<Token*>> AnalyseSyntax(vector<Token*> tokens, pair<ve
 
                 AST.push_back(node);
             }
+            else if (get<0>(GetTokenValue(tokens[0])) == "if")
+            {
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing starting ("});
+                }
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                vector<Node*> data;
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket(")") }, get<0>(return_flags)), false });
+
+                if (tokens.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing ending )"});
+                }
+
+                if (data.size() == 0)
+                {
+                    ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression"});
+                }
+
+                Node *if_expression = data[0];
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                if (data.size() == 0)
+                {
+                    ThrowError(start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (data[0]->type != "CodeBlock")
+                {
+                    ThrowError(start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
+                }
+
+                CodeBlock *if_code_block = (CodeBlock*)data[0];
+
+                IfStatement *if_statement = new IfStatement(if_expression, if_code_block, {}, {}, NULL);
+
+                int end = if_code_block->end;
+
+                while (true)
+                {
+                    if (tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else" || tokens[1]->type != "Keyword" || ((Keyword*)tokens[1])->name != "if")
+                    {
+                        break;
+                    }
+
+                    int else_if_start = tokens[0]->start;
+
+                    if (EraseFront(&tokens, 2))
+                    {
+                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    if (tokens[0]->type != "Bracket" || ((Bracket*)tokens[0])->value != "(")
+                    {
+                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing starting ("});
+                    }
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    tie(data, tokens) = AnalyseSyntax(tokens, { GetReturnTokens({ new Bracket(")") }, get<0>(return_flags)), false });
+
+                    if (tokens.size() == 0)
+                    {
+                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing ending )"});
+                    }
+
+                    if (data.size() == 0)
+                    {
+                        ThrowError(tokens[0]->start, tokens[0]->end, Error {SyntaxError, "Missing expression"});
+                    }
+
+                    Node *else_if_expression = data[0];
+
+                    if (EraseFront(&tokens, 1))
+                    {
+                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                    if (data.size() == 0)
+                    {
+                        ThrowError(else_if_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                    }
+
+                    if (data[0]->type != "CodeBlock")
+                    {
+                        ThrowError(else_if_start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
+                    }
+
+                    CodeBlock *else_if_code_block = (CodeBlock*)data[0];
+
+                    if_statement->else_if_expressions.push_back(else_if_expression);
+                    if_statement->else_if_code_blocks.push_back(else_if_code_block);
+
+                    end = else_if_code_block->end;
+                }
+
+                if (tokens[0]->type != "Keyword" || ((Keyword*)tokens[0])->name != "else")
+                {
+                    if_statement->start = start;
+                    if_statement->end = end;
+
+                    AST.push_back(if_statement);
+
+                    continue;
+                }
+
+                int else_start = tokens[0]->start;
+
+                if (EraseFront(&tokens, 1))
+                {
+                    ThrowError(else_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                tie(data, tokens) = AnalyseSyntax(tokens, { {}, true });
+
+                if (data.size() == 0)
+                {
+                    ThrowError(else_start, file_end, Error {SyntaxError, "Missing end of statement"});
+                }
+
+                if (data[0]->type != "CodeBlock")
+                {
+                    ThrowError(else_start, data[0]->end, Error {SyntaxError, "Invalid character in if statement"});
+                }
+
+                CodeBlock *else_code_block = (CodeBlock*)data[0];
+
+                if_statement->else_code_block = else_code_block;
+
+                if_statement->start = start;
+                if_statement->end = else_code_block->end;
+
+                AST.push_back(if_statement);
+            }
         }
         else if (tokens[0]->type == "Control" && get<0>(GetTokenValue(tokens[0])) == ";")
         {
@@ -887,6 +1015,8 @@ bool ShouldReturn(Token *current_token, vector<pair<Token*, bool>> return_tokens
 
 bool StatementStarted(std::vector<Node*> AST)
 {
+    Node *n = GetASTEnd(AST);
+
     if (GetASTEnd(AST) == NULL || GetASTEnd(AST)->type == "StatementEnd")
     {
         return false;
@@ -1091,6 +1221,11 @@ bool EraseFront(vector<Token*> *tokens, int length)
     for (int i = 0; i < length; i++)
     {
         tokens->erase(tokens->begin());
+
+        if (tokens->size() == 0)
+        {
+            return true;
+        }
     }
 
     return tokens->size() == 0;

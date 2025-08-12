@@ -18,13 +18,21 @@ Node::Node()
 
 ostream &operator<<(ostream &os, const Node &n)
 {
-    if (n.type == "Literal")
-    {
-        return os << (Literal&)n;
-    }
-    else if (n.type == "Type")
+    if (n.type == "Type")
     {
         return os << (Type&)n;
+    }
+    else if (n.type == "Parameter")
+    {
+        return os << (Parameter&)n;
+    }
+    else if (n.type == "Qualifier")
+    {
+        return os << (Qualifier&)n;
+    }
+    else if (n.type == "Literal")
+    {
+        return os << (Literal&)n;
     }
     else if (n.type == "CodeBlock")
     {
@@ -46,13 +54,9 @@ ostream &operator<<(ostream &os, const Node &n)
     {
         return os << (FunctionCall&)n;
     }
-    else if (n.type == "Parameter")
+    else if (n.type == "IfStatement")
     {
-        return os << (Parameter&)n;
-    }
-    else if (n.type == "Qualifier")
-    {
-        return os << (Qualifier&)n;
+        return os << (IfStatement&)n;
     }
     else if (n.type == "StatementEnd")
     {
@@ -246,6 +250,28 @@ ostream &operator<<(ostream &os, const FunctionCall &data)
     }
 
     return os << ")";
+}
+
+IfStatement::IfStatement(Node *if_expression, CodeBlock *if_code_block, vector<Node*> else_if_expressions, vector<CodeBlock*> else_if_code_blocks, CodeBlock *else_code_block) : if_expression(if_expression), if_code_block(if_code_block), else_if_expressions(else_if_expressions), else_if_code_blocks(else_if_code_blocks), else_code_block(else_code_block)
+{
+    this->type = "IfStatement";
+}
+
+ostream &operator<<(ostream &os, const IfStatement &data)
+{
+    os << "if (" << *data.if_expression << ") " << *data.if_code_block;
+
+    for (int i = 0; i < data.else_if_expressions.size(); i++)
+    {
+        os << " else if (" << *data.else_if_expressions[i] << ") " << *data.else_if_code_blocks[i];
+    }
+
+    if (data.else_code_block != NULL)
+    {
+        os << " else " << *data.else_code_block;
+    }
+
+    return os;
 }
 
 StatementEnd::StatementEnd()

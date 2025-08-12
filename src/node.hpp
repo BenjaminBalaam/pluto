@@ -137,6 +137,20 @@ class FunctionCall : public Node
         friend std::ostream &operator<<(std::ostream &os, const FunctionCall &data);
 };
 
+class IfStatement : public Node
+{
+    public:
+        Node *if_expression;
+        CodeBlock *if_code_block;
+        std::vector<Node*> else_if_expressions;
+        std::vector<CodeBlock*> else_if_code_blocks;
+        CodeBlock *else_code_block;
+
+        IfStatement(Node *if_expression, CodeBlock *if_code_block, std::vector<Node*> else_if_expressions, std::vector<CodeBlock*> else_if_code_blocks, CodeBlock *else_code_block);
+
+        friend std::ostream &operator<<(std::ostream &os, const IfStatement &data);
+};
+
 class StatementEnd : public Node
 {
     public:

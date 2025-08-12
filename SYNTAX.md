@@ -54,3 +54,22 @@ Precendence of Operations
 
 `qualifiers return_type name(type <expansion>name <default>, ...);`
 `qualifiers return_type name(type <expansion>name <default>, ...) { STATEMENTS }`
+
+### If Statements
+
+`if (condition) { STATEMENTS }`
+`if (condition) { STATEMENTS } else { STATEMENTS }`
+`if (condition) { STATEMENTS } else if (condition) { STATEMENTS } ... else { STATMENTS }`
+
+### Switch Statement
+
+`switch (identifier) { case value { STATEMENTS } ... default { STATEMENTS } }`
+
+### For Statements
+
+`for (declaration; condition; expression) { STATEMENTS }`
+`for (declaration : iterator) { STATEMENTS }`
+
+### While Statement
+
+`while (condition) { STATEMENTS }`

@@ -855,3 +855,50 @@ TEST_CASE("Test Syntax Analyser Define Function")
     REQUIRE( ((Literal*)((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].default_argument.value())->l_string == "abc" );
     REQUIRE( ((CodeBlock*)((AssignVariable*)AST[0])->value)->parameters[0].argument_expansion == Array );
 }
+
+TEST_CASE("Test Syntax Analyser If Statements")
+{
+    string text = "if (exp) {} if (exp) {} else {} if (exp1) {} else if (exp2) {} if (exp1) {} else if (exp2) {} else if (exp3) {} else {}";
+    vector<Node*> AST = get<0>(AnalyseSyntax(Tokenise(text)));
+
+    REQUIRE( AST[0]->type == "IfStatement" );
+    REQUIRE( ((IfStatement*)AST[0])->if_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[0])->if_expression)->name == "exp" );
+    REQUIRE( ((IfStatement*)AST[0])->if_code_block->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_if_expressions.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_if_code_blocks.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_code_block == NULL );
+
+    REQUIRE( AST[1]->type == "IfStatement" );
+    REQUIRE( ((IfStatement*)AST[1])->if_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[1])->if_expression)->name == "exp" );
+    REQUIRE( ((IfStatement*)AST[1])->if_code_block->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[1])->else_if_expressions.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[1])->else_if_code_blocks.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[1])->else_code_block->content.size() == 0 );
+
+    REQUIRE( AST[2]->type == "IfStatement" );
+    REQUIRE( ((IfStatement*)AST[2])->if_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[2])->if_expression)->name == "exp1" );
+    REQUIRE( ((IfStatement*)AST[2])->if_code_block->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[2])->else_if_expressions.size() == 1 );
+    REQUIRE( ((IfStatement*)AST[2])->else_if_expressions[0]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[2])->else_if_expressions[0])->name == "exp2" );
+    REQUIRE( ((IfStatement*)AST[2])->else_if_code_blocks.size() == 1 );
+    REQUIRE( ((IfStatement*)AST[2])->else_if_code_blocks[0]->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[0])->else_code_block == NULL );
+
+    REQUIRE( AST[3]->type == "IfStatement" );
+    REQUIRE( ((IfStatement*)AST[3])->if_expression->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[3])->if_expression)->name == "exp1" );
+    REQUIRE( ((IfStatement*)AST[3])->if_code_block->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[3])->else_if_expressions.size() == 2 );
+    REQUIRE( ((IfStatement*)AST[3])->else_if_expressions[0]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[3])->else_if_expressions[0])->name == "exp2" );
+    REQUIRE( ((IfStatement*)AST[3])->else_if_expressions[1]->type == "GetVariable" );
+    REQUIRE( ((GetVariable*)((IfStatement*)AST[3])->else_if_expressions[1])->name == "exp3" );
+    REQUIRE( ((IfStatement*)AST[3])->else_if_code_blocks.size() == 2 );
+    REQUIRE( ((IfStatement*)AST[3])->else_if_code_blocks[0]->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[3])->else_if_code_blocks[1]->content.size() == 0 );
+    REQUIRE( ((IfStatement*)AST[1])->else_code_block->content.size() == 0 );
+}
